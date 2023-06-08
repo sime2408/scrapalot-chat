@@ -68,7 +68,7 @@ def handle_file_upload():
         type=ACCEPTABLE_FILE_TYPES
     )
 
-    database_name = st.text_input("DB name", value="", label_visibility="visible")
+    database_name = st.text_input("Database where to upload the document", value="", label_visibility="visible")
 
     if st.button("Submit"):
         upload_documents(uploaded_files, database_name)

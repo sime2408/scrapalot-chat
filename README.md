@@ -6,6 +6,40 @@ You can ingest documents and ask questions without an internet connection!
 
 [scrapalot-chat](https://discord.gg/SaYbrNse)
 
+## How is it working?
+
+First you need to ingest some data to the `db` database folder by performing vectorstore embeddings:
+
+![Ingest data](img/ingest_data.png)
+
+This will create database embeddings:  
+
+![Ingest created](img/ingest_data_separated_db.png)
+
+Then you can start asking questions about your documents:
+
+![QA init](img/question_asking_model_init.png)
+
+After which you should receive an answer. You can enter "n" to see new chunk of the document, 
+"s" to speak the text.
+
+![QA generated](img/question_asking_generated.png)
+
+You have and option to browse through the documents and read them per chunk by using 
+`scrapalot_browse.py` script. You can also filter some documents by name.
+
+![Browse](img/browser_of_source_documents.png)
+
+Scrapalot supports REST API to integrate UI, but also support UI already created by streamlit:
+API:
+
+![API](img/api_running.png)
+
+UI:
+
+![API](img/web_ui_asked_question.png)
+![API](img/web_ui_question_answered.png)
+
 # Environment Setup
 In order to set your environment up to run the code here, first install all requirements. 
 

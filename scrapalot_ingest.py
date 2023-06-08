@@ -2,7 +2,6 @@
 import glob
 import math
 import os
-import select
 import sys
 import textwrap
 import threading
@@ -32,6 +31,11 @@ from langchain.vectorstores import Chroma
 from tqdm import tqdm
 
 from scripts.user_environment import ingest_chunk_size, ingest_chunk_overlap, ingest_embeddings_model, ingest_persist_directory, ingest_source_directory, args, chromaDB_manager, gpu_is_enabled
+
+
+class InputThread(threading.Thread):
+    def run(self):
+        self.choice = sys.stdin.readline()
 
 
 # Custom document loaders
@@ -202,7 +206,7 @@ def prompt_user():
         print(f"Created new directory: {directory_path}")
         return directory_path, db_path
 
-    def _get_user_choice(timeout):
+    def _get_user_choice(timeout=10):
         if not isinstance(timeout, int):
             raise ValueError("Timeout value should be an integer.")
         print(f"\033[94mSelect an option or 'q' to quit:\n\033[0m")
@@ -232,17 +236,22 @@ def prompt_user():
 
         threading.Thread(target=countdown, args=(timeout,), daemon=True).start()
 
-        inputs = [sys.stdin]
-        readable, _, _ = select.select(inputs, [], [], timeout)
-        if readable:
+        it = InputThread()
+        it.start()
+        it.join(timeout)
+
+        if it.is_alive():
             stop_threads.set()  # Stop the countdown
-            user_choice = sys.stdin.readline().strip()
+            print(f"\nNo input received within {timeout} seconds, defaulting to option {default_choice}.")
+            return default_choice
+        else:
+            stop_threads.set()  # Stop the countdown
+            user_choice = it.choice.strip()
             if user_choice == "q":
                 raise SystemExit
             if user_choice == "":
                 return default_choice
             return user_choice
-        return default_choice
 
     while True:
         choice = _get_user_choice(timeout=10)

@@ -143,7 +143,7 @@ def run_program():
             else:
                 print_files_in_source_directory(files)
 
-            user_input = input(f'\n\033[94mChoose file ("b" to go back, "q" to quit): \033[0m')
+            user_input = input(f'\n\033[94mChoose file index ("b" to go back, "q" to quit): \033[0m')
             if user_input.lower() == 'b':
                 current_directory = source_dir
             elif user_input.lower() == 'q':
