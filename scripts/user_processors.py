@@ -43,8 +43,11 @@ def print_document_chunk(doc):
 
 
 def process_database_question(database_name, llm, collection_name: Optional[str]):
-    embeddings_kwargs = {'device': 'cuda'} if gpu_is_enabled else {}
-    embeddings = OpenAIEmbeddings() if openai_use else HuggingFaceEmbeddings(model_name=ingest_embeddings_model, model_kwargs=embeddings_kwargs)
+    embeddings_kwargs = {'device': 'cuda'} if gpu_is_enabled else {'device': 'cpu'}
+    encode_kwargs = {'normalize_embeddings': False}
+    embeddings = OpenAIEmbeddings() if openai_use else HuggingFaceEmbeddings(
+        model_name=ingest_embeddings_model, model_kwargs=embeddings_kwargs, encode_kwargs=encode_kwargs
+    )
     persist_dir = f"./db/{database_name}"
 
     db = Chroma(persist_directory=persist_dir,

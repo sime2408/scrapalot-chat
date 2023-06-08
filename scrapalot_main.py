@@ -15,8 +15,8 @@ from transformers import LlamaTokenizer
 from transformers import pipeline
 
 import scrapalot_logs
-from scripts.user_environment import model_type, openai_api_key, model_path_or_id_llama, model_n_ctx, model_temperature, model_top_p, model_n_batch, model_use_mlock, model_n_threads, model_verbose, \
-    huggingface_hub_key, args, db_get_only_relevant_docs, gpt4all_backend, model_path_or_id_huggingface, model_path_or_id_gpt4all, gpu_is_enabled
+from scripts.user_environment import model_type, openai_api_key, model_n_ctx, model_temperature, model_top_p, model_n_batch, model_use_mlock, model_n_threads, model_verbose, \
+    huggingface_hub_key, args, db_get_only_relevant_docs, gpt4all_backend, model_path_or_id, gpu_is_enabled
 from scripts.user_processors import print_document_chunk, print_hyperlink, process_database_question, process_query
 from scripts.user_prompt import prompt
 
@@ -30,7 +30,7 @@ def get_gpu_memory() -> int:
     """
     Returns the amount of free memory in MB for each GPU.
     """
-    return int(torch_cuda.mem_get_info()[0]/(1024**2))
+    return int(torch_cuda.mem_get_info()[0] / (1024 ** 2))
 
 
 # noinspection PyPep8Naming
@@ -43,10 +43,10 @@ def calculate_layer_count() -> None | int | float:
     LAYER_SIZE_MB = 120.6  # This is the size of a single layer on VRAM, and is an approximation.
     # The current set value is for 7B models. For other models, this value should be changed.
     LAYERS_TO_REDUCE = 6  # About 700 MB is needed for the LLM to run, so we reduce the layer count by 6 to be safe.
-    if (get_gpu_memory()//LAYER_SIZE_MB) - LAYERS_TO_REDUCE > 32:
+    if (get_gpu_memory() // LAYER_SIZE_MB) - LAYERS_TO_REDUCE > 32:
         return 32
     else:
-        return get_gpu_memory()//LAYER_SIZE_MB-LAYERS_TO_REDUCE
+        return get_gpu_memory() // LAYER_SIZE_MB - LAYERS_TO_REDUCE
 
 
 def get_llm_instance():
@@ -59,7 +59,7 @@ def get_llm_instance():
             print("GPU is enabled, but GPT4All does not support GPU acceleration. Please use LlamaCpp instead.")
             exit(1)
         return GPT4All(
-            model=model_path_or_id_gpt4all,
+            model=model_path_or_id,
             n_ctx=model_n_ctx,
             backend=gpt4all_backend,
             callbacks=callbacks,
@@ -74,7 +74,7 @@ def get_llm_instance():
         )
     elif model_type == "llamacpp":
         return LlamaCpp(
-            model_path=model_path_or_id_llama,
+            model_path=model_path_or_id,
             temperature=model_temperature,
             n_ctx=model_n_ctx,
             top_p=model_top_p,
@@ -89,27 +89,27 @@ def get_llm_instance():
         return HuggingFacePipeline(pipeline=pipeline(
             "text-generation",
             model=LlamaForCausalLM.from_pretrained(
-                model_path_or_id_huggingface,
-                load_in_8bit=False,
+                model_path_or_id,
+                load_in_8bit=gpu_is_enabled if gpu_is_enabled else False,
                 device_map={
-                    '': 'cpu',
-                    'transformer': 'cpu',
-                    'lm_head': 'cpu',
+                    '': 'cuda' if gpu_is_enabled else 'cpu',
+                    'transformer': 'cuda' if gpu_is_enabled else 'cpu',
+                    'lm_head': 'cuda' if gpu_is_enabled else 'cpu',
                 },  # if GPU: device_map='auto',
-                torch_dtype=torch.float32,  # if GPU out float16
+                torch_dtype=torch.float16 if gpu_is_enabled else torch.float32,
                 low_cpu_mem_usage=True
             ),
-            tokenizer=LlamaTokenizer.from_pretrained(model_path_or_id_huggingface),
+            tokenizer=LlamaTokenizer.from_pretrained(model_path_or_id),
             max_length=2048,
             temperature=model_temperature,
-            top_p=0.95,
+            top_p=model_top_p,
             repetition_penalty=1.15
         ))
     elif model_type == "huggingface-hub":
         return LLMChain(
             prompt=PromptTemplate(template="""<|prompter|>{question}<|endoftext|><|assistant|>""", input_variables=["question"]),
             llm=HuggingFaceHub(
-                repo_id=model_path_or_id_llama,
+                repo_id=model_path_or_id,
                 huggingfacehub_api_token=huggingface_hub_key
             ),
         )

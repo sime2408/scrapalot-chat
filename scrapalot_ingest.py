@@ -153,14 +153,18 @@ def tag_collection(database_name: str, db_collection_name: str):
     """
     client = chromaDB_manager.get_client(database_name)
     # Check the default name
-    default_collection = client.get_collection(name='langchain')
-    if default_collection:
-        try:
-            default_collection.modify(name=db_collection_name)
-        except ValueError as e:
-            # might be that collection already exists?
-            client.delete_collection(name="langchain")
-    else:
+
+    try:
+        default_collection = client.get_collection(name='langchain')
+        if default_collection:
+            try:
+                default_collection.modify(name=db_collection_name)
+            except ValueError as e:
+                # might be that collection already exists?
+                client.delete_collection(name="langchain")
+        else:
+            client.get_or_create_collection(name=db_collection_name)
+    except ValueError as e:
         client.get_or_create_collection(name=db_collection_name)
 
 
@@ -286,7 +290,7 @@ def main(source_dir: str, persist_dir: str, db_collection_name: str):
         print(f"Appending to existing vectorstore at {persist_dir}")
 
         db = Chroma(persist_directory=persist_dir,
-                    collection_name=db_collection_name if db_collection_name else 'langchain',
+                    collection_name=db_collection_name,
                     embedding_function=embeddings,
                     client_settings=chromaDB_manager.get_chroma_setting(persist_dir)
                     )
@@ -304,7 +308,7 @@ def main(source_dir: str, persist_dir: str, db_collection_name: str):
         index_metadata = {"elements": num_elements}  # Provide the "elements" key
         db = Chroma.from_documents(texts, embeddings,
                                    persist_directory=persist_dir,
-                                   collection_name=db_collection_name if db_collection_name else 'langchain',
+                                   collection_name=db_collection_name,
                                    client_settings=chromaDB_manager.get_chroma_setting(persist_dir),
                                    index_metadata=index_metadata)
     db.persist()

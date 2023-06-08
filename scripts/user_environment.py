@@ -32,18 +32,16 @@ model_top_p = float(os.environ.get("MODEL_TOP_P", "0.9"))
 model_n_batch = int(os.environ.get('MODEL_N_BATCH', "512"))
 
 # Settings specific for LLAMA
-model_path_or_id_llama = os.environ.get("MODEL_ID_OR_PATH")
+model_path_or_id = os.environ.get("MODEL_ID_OR_PATH")
 
 # Setting specific for OpenAI models
 openai_api_key = os.environ.get("OPENAI_API_KEY")
 openai_use = os.environ.get("OPENAI_USE", "false") == "true"
 
 # Setting specific for Huggingface models
-model_path_or_id_huggingface = os.environ.get("MODEL_ID_OR_PATH", "TheBloke/guanaco-7B-HF")
 huggingface_hub_key = os.environ.get("HUGGINGFACEHUB_API_TOKEN")
 
 # Setting specific for GPT4All (can be llama or gptj)
-model_path_or_id_gpt4all = os.environ.get("MODEL_ID_OR_PATH")
 gpt4all_backend = os.environ.get("GPT4ALL_BACKEND", "gptj")
 
 # Setting specific for LLAMA GPU models
@@ -92,7 +90,7 @@ def parse_arguments():
     )
     parser.add_argument(
         "--model-path-or-id",
-        default=model_path_or_id_llama,
+        default=model_path_or_id,
         help="Model path",
         type=pathlib.Path,
     )
