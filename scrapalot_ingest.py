@@ -5,7 +5,6 @@ import os
 import sys
 import textwrap
 import threading
-import time
 from multiprocessing import Pool
 from typing import List
 
@@ -35,7 +34,7 @@ from scripts.user_environment import ingest_chunk_size, ingest_chunk_overlap, in
 
 class InputThread(threading.Thread):
     def run(self):
-        self.choice = sys.stdin.readline()
+        self.choice = input().strip()
 
 
 # Custom document loaders
@@ -85,10 +84,12 @@ LOADER_MAPPING = {
 def load_single_document(file_path: str) -> List[Document]:
     ext = (os.path.splitext(file_path)[-1]).lower()
     if ext in LOADER_MAPPING:
-        loader_class, loader_args = LOADER_MAPPING[ext]
-        loader = loader_class(file_path, **loader_args)
-        return loader.load()
-
+        try:
+            loader_class, loader_args = LOADER_MAPPING[ext]
+            loader = loader_class(file_path, **loader_args)
+            return loader.load()
+        except Exception as e:
+            raise ValueError(f"Problem with document {file_path}: \n'{e}'")
     raise ValueError(f"Unsupported file extension '{ext}'")
 
 
@@ -107,6 +108,9 @@ def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Docum
         results = []
         with tqdm(total=len(filtered_files), desc='Loading new documents', ncols=80) as pbar:
             for i, docs in enumerate(pool.imap_unordered(load_single_document, filtered_files)):
+                if isinstance(docs, dict):
+                    print(" - " + docs['file'] + ": error: " + str(docs['exception']))
+                    continue
                 for d in docs:
                     print(f"\n\033[32m\033[2m\033[38;2;0;128;0m{d.metadata.get('source', '')} \033[0m")
                 results.extend(docs)
@@ -206,56 +210,15 @@ def prompt_user():
         print(f"Created new directory: {directory_path}")
         return directory_path, db_path
 
-    def _get_user_choice(timeout=10):
-        if not isinstance(timeout, int):
-            raise ValueError("Timeout value should be an integer.")
+    while True:
         print(f"\033[94mSelect an option or 'q' to quit:\n\033[0m")
         print("1. Select existing directory")
         print("2. Create a new directory")
         print(f"3. Use current ingest_source_directory: {ingest_source_directory}")
 
-        default_choice = "1"  # Default choice
-        prompt_message = f"\nEnter your choice: "
-        print(prompt_message, end='')  # This prints the prompt message initially
+        user_choice = input("\nEnter your choice: ").strip()
 
-        stop_threads = threading.Event()  # Event to signal the thread to stop
-
-        # Start a new thread to count down the seconds
-        def countdown(t):
-            time.sleep(0.1)  # delay to ensure the prompt message is printed before the countdown starts
-            while t > 0 and not stop_threads.is_set():  # Stop if the event is set
-                sys.stdout.write('\rSelect an option, defaults to [1] (remaining time [{}]) : '.format(t))  # use '\r' to go back
-                sys.stdout.flush()  # force it to print on the screen
-                time.sleep(1)
-                t -= 1
-            # When the countdown is over, print the prompt message
-            if t == 0:
-                sys.stdout.write('\r' + ' ' * 20)  # Clear the line
-                sys.stdout.write('\r' + prompt_message)
-                sys.stdout.flush()
-
-        threading.Thread(target=countdown, args=(timeout,), daemon=True).start()
-
-        it = InputThread()
-        it.start()
-        it.join(timeout)
-
-        if it.is_alive():
-            stop_threads.set()  # Stop the countdown
-            print(f"\nNo input received within {timeout} seconds, defaulting to option {default_choice}.")
-            return default_choice
-        else:
-            stop_threads.set()  # Stop the countdown
-            user_choice = it.choice.strip()
-            if user_choice == "q":
-                raise SystemExit
-            if user_choice == "":
-                return default_choice
-            return user_choice
-
-    while True:
-        choice = _get_user_choice(timeout=10)
-        if choice == "1":
+        if user_choice == "1":
             directories = _display_directories()
             while True:  # Keep asking until we get a valid directory number
                 existing_directory = input("\n\033[94mEnter the number of the existing directory (q for quit, b for back): \033[0m")
@@ -281,14 +244,14 @@ def prompt_user():
                 except (ValueError, IndexError):
                     print("\n\033[91m\033[1m[!] \033[0mInvalid choice. Please try again.\033[91m\033[1m[!] \033[0m\n")
                     directories = _display_directories()  # Display directories again if the input is invalid
-        elif choice == "2":
+        elif user_choice == "2":
             new_directory_name = input("Enter the name for the new directory: ")
             selected_directory_path, selected_db_path = _create_directory(new_directory_name)
             input("Place your source material into the new folder and press enter to continue...")
             return selected_directory_path, selected_db_path
-        elif choice == "3":
+        elif user_choice == "3":
             return ingest_source_directory, ingest_persist_directory
-        elif choice == "q":
+        elif user_choice == "q":
             exit(0)
         else:
             print("\n\033[91m\033[1m[!] \033[0mInvalid choice. Please try again.\033[91m\033[1m[!] \033[0m\n")

@@ -48,14 +48,30 @@ collections: allergy, immunology, anesthesiology, Dermatology, radiology ....
 # Environment Setup
 In order to set your environment up to run the code here, first install all requirements. 
 
+## Conda environment
+It is recommended that you create a virtual environment to install all dependencies from 
+`requirements_*.txt` files, not to mix them with another Python version on your machine.
+
+- For conda environment:
+```shell
+conda create --name scrapalot-chat python=3.10.11 && conda activate scrapalot-chat
+```
+
+If you want to remove the conda environment, run this:
+```shell
+conda remove -n scrapalot-chat --all
+```
+
+# GPU
+Most importantly is that `GPU_IS_ENABLED` variable must be set to `true`.
+
 ## GPU (Linux):
 
 If you have an Nvidia GPU, you can speed things up by installing the llama-cpp-python version with CUDA by setting these flags:
-- On windows: `🚧 WIP`
-- On linux: `export LLAMA_CUBLAS=1`
+`export LLAMA_CUBLAS=1`
 
 ```shell
-pip3 install -r requirements_win.txt
+pip3 install -r requirements_linux.txt
 ```
 
 First, you have to uninstall old torch installation and install CUDA one:
@@ -98,6 +114,10 @@ MODEL_ID_OR_PATH=models/ggml-vic13b-q5_1.bin
 
 ## GPU (Windows)
 
+```shell
+pip3 install -r requirements_win.txt
+```
+
 You can use the included installer batch file to install the required dependencies for GPU acceleration, or:
 
 1. Install [NVidia CUDA 11.8](https://developer.nvidia.com/cuda-11-8-0-download-archive)
@@ -114,23 +134,28 @@ You can use the included installer batch file to install the required dependenci
     CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip3 install llama-cpp-python --force-reinstall --upgrade --no-cache-dir
     ```
 
-3. Enable GPU acceleration in `.env` file by setting `IS_GPU_ENABLED` to `True`
+3. Enable GPU acceleration in `.env` file by setting `GPU_IS_ENABLED` to `true`
 4. Run `scrapalot_ingest.py` and `scrapalot_main.py` as usual
 
+# CPU
+Most importantly is that `GPU_IS_ENABLED` variable must be set to `false`.
 
-## For CPU only setup:
+## CPU (Linux):
+
+```shell
+pip3 install -r requirements_linux.txt
+```
+
+## CPU (Windows):
+
+```shell
+pip3 install -r requirements_win.txt
+```
+
+## CPU (MacOs):
+
 ```shell
 pip3 install -r requirements_mac.txt
-```
-
-- For conda environment:
-```shell
-conda create --name scrapalot-chat python=3.10.11 && conda activate scrapalot-chat
-```
-
-If you want to remove the conda environment, run this:
-```shell
-conda remove -n scrapalot-chat --all
 ```
 
 # LLM Models
