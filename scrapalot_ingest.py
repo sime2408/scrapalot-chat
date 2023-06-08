@@ -216,7 +216,7 @@ def prompt_user():
         print("2. Create a new directory")
         print(f"3. Use current ingest_source_directory: {ingest_source_directory}")
 
-        user_choice = input("\nEnter your choice: ").strip()
+        user_choice = input('\nEnter your choice ("q" for quit): ').strip()
 
         if user_choice == "1":
             directories = _display_directories()
