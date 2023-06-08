@@ -145,12 +145,14 @@ def main():
         if query == "q":
             break
 
+        collection_name = os.path.basename(selected_directory_list[0]) if selected_directory_list else None
+
         with ThreadPoolExecutor() as executor:
             qa_list = list(tqdm(executor.map(
                 process_database_question, selected_directory_list,
                 [llm] * len(selected_directory_list),
-                # we're not asking a collection here
-                [None] * len(selected_directory_list)
+                # we're not asking a collection here, assuming it's the same as db name
+                [collection_name] * len(selected_directory_list)
             ), total=len(selected_directory_list)))
 
         for i in range(len(qa_list)):
