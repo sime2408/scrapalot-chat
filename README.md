@@ -35,7 +35,12 @@ API:
 
 ![API](img/api_running.png)
 
-UI:
+UI supports specifying collection in the database which can be a subgroup of 
+documents you want to query later by collection name. For example, medicine books can have
+collections: allergy, immunology, anesthesiology, Dermatology, radiology .... 
+
+| **collections are under development** |
+|----------------------------------------------|
 
 ![API](img/web_ui_asked_question.png)
 ![API](img/web_ui_question_answered.png)
