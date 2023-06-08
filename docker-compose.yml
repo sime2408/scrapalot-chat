@@ -1,0 +1,132 @@
+#file: noinspection ComposeUnknownValues
+version: "3.9"
+services:
+
+  scrapalot-chat-api:
+    container_name: scrapalot-chat-api
+    image: scrapalot-chat:latest
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args: [ "BASEIMAGE=python:3.10.11" ]
+    command: ["python", "scrapalot_main_api_run.py"]
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 16g
+    # command: ["tail", "-f", "/dev/null"]
+    ports:
+      - "8080:8080"
+    environment:
+      - OS_RUNNING_ENVIRONMENT=linux
+      - INGEST_PERSIST_DIRECTORY=db
+      - INGEST_EMBEDDINGS_MODEL=all-MiniLM-L6-v2
+      - MODEL_TYPE=llamacpp
+      - MODEL_ID_OR_PATH=/home/scrapalot/scrapalot-chat/models/WizardLM-7B-uncensored.ggmlv3.q8_0.bin
+      - MODEL_N_CTX=1000
+    volumes:
+      - ./models:/home/scrapalot/scrapalot-chat/models
+      - ./db:/home/scrapalot/scrapalot-chat/db
+      - ./source_documents:/home/scrapalot/scrapalot-chat/source_documents
+
+  scrapalot-chat-web:
+    container_name: scrapalot-chat-web
+    image: scrapalot-chat:latest
+    command: [ "streamlit", "run", "scrapalot_main_web.py", "--server.port=8501" ]
+    ports:
+      - "8501:8501"
+    environment:
+      - API_BASE_URL=http://scrapalot-chat-api-cuda-11.8:8080
+      # - API_BASE_URL=http://scrapalot-chat-api:8080
+      - OS_RUNNING_ENVIRONMENT=linux
+      - INGEST_PERSIST_DIRECTORY=db
+      - INGEST_EMBEDDINGS_MODEL=all-MiniLM-L6-v2
+      - MODEL_TYPE=llamacpp
+      - MODEL_ID_OR_PATH=/home/scrapalot/scrapalot-chat/models/WizardLM-7B-uncensored.ggmlv3.q8_0.bin
+      - MODEL_N_CTX=1000
+    depends_on:
+      #- scrapalot-chat-api
+      - scrapalot-chat-api-cuda-11.8
+    volumes:
+      - ./models:/home/scrapalot/scrapalot-chat/models
+      - ./db:/home/scrapalot/scrapalot-chat/db
+      - ./source_documents:/home/scrapalot/scrapalot-chat/source_documents
+
+  #
+  # To run with CUDA 11.8
+  #  docker compose run --rm --build scrapalot-chat-api-cuda-11.8
+  #
+  scrapalot-chat-api-cuda-11.8:
+    container_name: scrapalot-chat-api-cuda-11.8
+    image: scrapalot-chat:latest
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args: [ "BASEIMAGE=wallies/python-cuda:3.10-cuda11.8-runtime" ]
+    command: [ "python", "scrapalot_main_api_run.py" ]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [ "gpu" ]
+              driver: nvidia
+              count: 1
+          memory: 16G
+    # command: ["tail", "-f", "/dev/null"]
+    ports:
+      - "8080:8080"
+    environment:
+      - OS_RUNNING_ENVIRONMENT=linux
+      - INGEST_PERSIST_DIRECTORY=db
+      - INGEST_EMBEDDINGS_MODEL=all-MiniLM-L6-v2
+      - MODEL_TYPE=llamacpp
+      - MODEL_ID_OR_PATH=/home/scrapalot/scrapalot-chat/models/WizardLM-7B-uncensored.ggmlv3.q8_0.bin
+      - MODEL_N_CTX=1000
+    volumes:
+      - ./models:/home/scrapalot/scrapalot-chat/models
+      - ./db:/home/scrapalot/scrapalot-chat/db
+      - ./source_documents:/home/scrapalot/scrapalot-chat/source_documents
+
+  #
+  # For ingest without cuda:
+  # docker compose run --rm --build scrapalot-chat-ingest
+  #
+  scrapalot-chat-ingest:
+    container_name: scrapalot-chat-ingest
+    extends:
+      service: scrapalot-chat-api
+    command: ["python", "scrapalot_ingest.py"]
+
+  #
+  # To ingest using cuda 11.8:
+  # docker compose run --rm --build scrapalot-chat-api-cuda-11.8-ingest
+  #
+  scrapalot-chat-api-cuda-11.8-ingest:
+    container_name: scrapalot-chat-api-cuda-11.8-ingest
+    extends:
+      service: scrapalot-chat-api-cuda-11.8
+    command: ["python", "scrapalot_ingest.py"]
+
+  # Check your system's version using
+  # docker compose run --rm check-cuda-version
+  #
+  # then build and test the scrapalot-chat container using
+  # docker compose run --rm check-cuda-<CUDAVERSION>
+  #
+  # Where <CUDAVERSION> is the version you found using 'check-cuda-version'.
+  #
+  # Example if CUDAVERSION == 11.8
+  # docker compose run --rm --build check-cuda-11.8
+  #
+  # You can update your host's CUDA installation by downloading
+  # a recent version from
+  #
+  # https://developer.nvidia.com/cuda-downloads
+
+  check-cuda-version:
+    image: ubuntu
+    command: [nvidia-smi]
+  check-cuda-11.8:
+    extends: scrapalot-chat-api-cuda-11.8
+    command: [nvidia-smi]
