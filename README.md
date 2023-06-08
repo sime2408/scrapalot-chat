@@ -39,8 +39,8 @@ UI supports specifying collection in the database which can be a subgroup of
 documents you want to query later by collection name. For example, medicine books can have
 collections: allergy, immunology, anesthesiology, Dermatology, radiology .... 
 
-| **collections are under development** |
-|----------------------------------------------|
+| **NOTE: collections are under development** |
+|---------------------------------------------|
 
 ![API](img/web_ui_asked_question.png)
 ![API](img/web_ui_question_answered.png)
@@ -146,6 +146,10 @@ Then, download the LLM model and place it in a directory of your choice (for exa
 - `huggingface-local`: [TheBloke/guanaco-7B-HF](https://huggingface.co/TheBloke/guanaco-7B-HF)
 - `huggingface-hub`: Not yet implemented!
 - `openai`: Uses OpenAI API and gpt-4 model
+
+
+| **NOTE: huggingface-local & huggingface-hub are under development** |
+|---------------------------------------------------------------------|
 
 # Env variables
 
