@@ -2,6 +2,10 @@
 Ask questions about your documents without an internet connection, using the power of LLMs. 100% private, no data leaves your execution environment at any point. 
 You can ingest documents and ask questions without an internet connection!
 
+## Discord server
+
+[scrapalot-chat](https://discord.gg/SaYbrNse)
+
 # Environment Setup
 In order to set your environment up to run the code here, first install all requirements. 
 
