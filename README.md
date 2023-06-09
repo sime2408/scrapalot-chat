@@ -106,6 +106,7 @@ vim ~/.bashrc
 
 ```shell
 export LLAMA_CUBLAS=1
+export LLAMA_CLBLAST=1 
 export CMAKE_ARGS=-DLLAMA_CUBLAS=on
 export FORCE_CMAKE=1
 ```
@@ -125,10 +126,16 @@ You should install the latest cuda toolkit:
 conda install -c conda-forge cudatoolkitpip uninstall llama-cpp-python
 ```
 
+if you're already in conda env you can uninstall llama-cpp-python like this:
+
+```shell
+pip3 uninstall llama-cpp-python
+```
+
 Install llama:
 
 ```shell
-pip install llama-cpp-python --no-cache-dir --verbose
+CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python==0.1.57 --no-cache-dir
 ```
 
 Modify LLM code to accept `n_gpu_layers`:
