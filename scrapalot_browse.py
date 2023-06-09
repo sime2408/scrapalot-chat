@@ -20,6 +20,9 @@ if os_running_environment == 'macOs':
 elif os_running_environment == 'windows':
     driver = 'pyttsx3.drivers.sapi5'
     importlib.import_module(driver)
+elif os_running_environment == 'linux':
+    driver = 'pyttsx3.drivers.espeak'
+    importlib.import_module(driver)
 
 engine = pyttsx3.init()
 engine.setProperty('rate', 205)
