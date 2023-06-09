@@ -28,7 +28,6 @@ def initialize_state():
         st.session_state['selected_collection'] = ''
 
 
-@st.cache_data()
 def get_database_names_and_collections():
     endpoint = f"{api_base_url}/databases"
     response = requests.get(endpoint)
@@ -148,20 +147,6 @@ def upload_documents(files: List[st.runtime.uploaded_file_manager.UploadedFile],
         else:
             st.error("Document storing failed.")
             st.write(response.text)
-
-
-@st.cache_data()
-def get_database_names_and_collections():
-    endpoint = f"{api_base_url}/databases"
-    response = requests.get(endpoint)
-    if response.status_code == 200:
-        result = response.json()
-        databases = {db['database_name']: [col['name'] for col in db['collections']] for db in result}
-        return databases
-    else:
-        st.error("Failed to get database names.")
-        st.write(response.text)
-        return {}
 
 
 def set_keepalive_options(http_conn):
