@@ -37,7 +37,7 @@ API:
 
 UI supports specifying collection in the database which can be a subgroup of 
 documents you want to query later by collection name. For example, medicine books can have
-collections: allergy, immunology, anesthesiology, Dermatology, radiology .... 
+collections: allergy, immunology, anesthesiology, dermatology, radiology .... 
 
 | **NOTE: collections are under development** |
 |---------------------------------------------|
@@ -247,6 +247,7 @@ If you use conda environment, and you want to parse `epub` books, you have to in
 
 ```shell
 conda install -c conda-forge pypandoc
+conda install -c anaconda pandoc
 ```
 
 Run the following command to ingest all the data.

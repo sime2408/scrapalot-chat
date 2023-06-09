@@ -35,7 +35,7 @@ class UploadFileBody(BaseModel):
 
 class QueryBody(BaseModel):
     database_name: str
-    collection_name: Optional[str]
+    collection_name: str
     question: str
 
 
@@ -84,7 +84,6 @@ async def upload_documents(
         database_name: str = Form(...),
         files: List[UploadFile] = File(...),
         collection_name: Optional[str] = None):
-
     saved_files = []
     source_documents = './source_documents'
     try:
@@ -159,6 +158,7 @@ async def query_documents(body: QueryBody, llm=Depends(get_llm)):
         return response
     except Exception as e:
         return ScrapalotErrorResponse(status_code=500, error=str(e))
+
 
 # commented out, because we use web UI
 if __name__ == "__main__":

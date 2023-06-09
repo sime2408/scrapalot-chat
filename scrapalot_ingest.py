@@ -4,7 +4,6 @@ import math
 import os
 import sys
 import textwrap
-import threading
 from multiprocessing import Pool
 from typing import List
 
@@ -30,11 +29,6 @@ from langchain.vectorstores import Chroma
 from tqdm import tqdm
 
 from scripts.user_environment import ingest_chunk_size, ingest_chunk_overlap, ingest_embeddings_model, ingest_persist_directory, ingest_source_directory, args, chromaDB_manager, gpu_is_enabled
-
-
-class InputThread(threading.Thread):
-    def run(self):
-        self.choice = input().strip()
 
 
 # Custom document loaders
@@ -151,6 +145,29 @@ def does_vectorstore_exist(persist_directory: str) -> bool:
     return False
 
 
+def tag_collection(database_name: str, db_collection_name: str):
+    """
+    This function prompts checks for collections in chroma database and tends to rename
+    the default name "langchain" to correct collection name user provides while
+    ingesting the data.
+    """
+    client = chromaDB_manager.get_client(database_name)
+    # Check the default name
+
+    try:
+        default_collection = client.get_collection(name='langchain')
+        if default_collection:
+            try:
+                default_collection.modify(name=db_collection_name)
+            except ValueError as e:
+                # might be that collection already exists?
+                client.delete_collection(name="langchain")
+        else:
+            client.get_or_create_collection(name=db_collection_name)
+    except ValueError as e:
+        client.get_or_create_collection(name=db_collection_name)
+
+
 def prompt_user():
     """
     This function prompts the user to select an existing directory or create a new one to store source material.
@@ -230,6 +247,8 @@ def prompt_user():
                     selected_directory = directories[int(existing_directory) - 1]
                     selected_directory_path = f"./source_documents/{selected_directory}"
                     selected_db_path = f"./db/{selected_directory}"
+                    db_collection_name = selected_directory
+
                     if not os.listdir(selected_directory_path):
                         print(f"Error: Directory '{selected_directory}' is empty.")
                         print("Please create files in the directory or choose another.")
@@ -240,7 +259,7 @@ def prompt_user():
                         set_key('.env', 'INGEST_SOURCE_DIRECTORY', selected_directory_path)
                         set_key('.env', 'INGEST_PERSIST_DIRECTORY', selected_db_path)
                         print(f"Selected directory: {selected_directory_path}")
-                        return selected_directory_path, selected_db_path
+                        return selected_directory_path, selected_db_path, db_collection_name
                 except (ValueError, IndexError):
                     print("\n\033[91m\033[1m[!] \033[0mInvalid choice. Please try again.\033[91m\033[1m[!] \033[0m\n")
                     directories = _display_directories()  # Display directories again if the input is invalid
@@ -248,16 +267,18 @@ def prompt_user():
             new_directory_name = input("Enter the name for the new directory: ")
             selected_directory_path, selected_db_path = _create_directory(new_directory_name)
             input("Place your source material into the new folder and press enter to continue...")
-            return selected_directory_path, selected_db_path
+            db_collection_name = new_directory_name
+            return selected_directory_path, selected_db_path, db_collection_name
         elif user_choice == "3":
-            return ingest_source_directory, ingest_persist_directory
+            db_collection_name = os.path.basename(ingest_persist_directory)
+            return ingest_source_directory, ingest_persist_directory, db_collection_name
         elif user_choice == "q":
             exit(0)
         else:
             print("\n\033[91m\033[1m[!] \033[0mInvalid choice. Please try again.\033[91m\033[1m[!] \033[0m\n")
 
 
-def main(source_dir: str, persist_dir: str):
+def main(source_dir: str, persist_dir: str, db_collection_name: str):
     # Create embeddings
     embeddings_kwargs = {'device': 'cuda'} if gpu_is_enabled else {}
     embeddings = HuggingFaceEmbeddings(
@@ -267,8 +288,9 @@ def main(source_dir: str, persist_dir: str):
     if does_vectorstore_exist(persist_dir):
         # Update and store locally vectorstore
         print(f"Appending to existing vectorstore at {persist_dir}")
+
         db = Chroma(persist_directory=persist_dir,
-                    collection_name=args.collection,
+                    collection_name=db_collection_name,
                     embedding_function=embeddings,
                     client_settings=chromaDB_manager.get_chroma_setting(persist_dir)
                     )
@@ -286,6 +308,7 @@ def main(source_dir: str, persist_dir: str):
         index_metadata = {"elements": num_elements}  # Provide the "elements" key
         db = Chroma.from_documents(texts, embeddings,
                                    persist_directory=persist_dir,
+                                   collection_name=db_collection_name,
                                    client_settings=chromaDB_manager.get_chroma_setting(persist_dir),
                                    index_metadata=index_metadata)
     db.persist()
@@ -299,14 +322,24 @@ if __name__ == "__main__":
         if args.ingest_dbname:
             source_directory = f"./source_documents/{args.ingest_dbname}"
             persist_directory = f"./db/{args.ingest_dbname}"
+
             if not os.path.exists(source_directory):
                 os.makedirs(source_directory)
+
             if not os.path.exists(persist_directory):
                 os.makedirs(persist_directory)
+
+            if args.collection:
+                collection_name = args.collection
+                tag_collection(args.ingest_dbname, args.collection)
+            else:
+                collection_name = args.ingest_dbname
+                tag_collection(args.ingest_dbname, args.ingest_dbname)
         else:
-            source_directory, persist_directory = prompt_user()
+            source_directory, persist_directory, collection_name = prompt_user()
+            tag_collection(os.path.basename(persist_directory), collection_name)
     except SystemExit:
         print("\n\033[91m\033[1m[!] \033[0mExiting program! \033[91m\033[1m[!] \033[0m")
         sys.exit(1)
 
-    main(source_directory, persist_directory)
+    main(source_directory, persist_directory, collection_name)
