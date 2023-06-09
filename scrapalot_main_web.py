@@ -42,10 +42,10 @@ def get_database_names_and_collections():
         return {}
 
 
-def query_documents(question: str, database_name: str):
+def query_documents(question: str, database_name: str, collection_name: str):
     with st.spinner("Processing..."):
         endpoint = f"{api_base_url}/query"
-        data = {"question": question, "database_name": database_name}
+        data = {"question": question, "database_name": database_name, "collection_name": collection_name}
 
         # Modify socket options for the HTTPConnection class
         set_keepalive_options(HTTPConnection)
@@ -112,7 +112,7 @@ def handle_user_query_processing(user_input):
             'key': message_key
         })
         # Then wait for the answer
-        answer, source_documents = query_documents(user_input, selected_database)
+        answer, source_documents = query_documents(user_input, selected_database, selected_collection)
         # Append to the history
         answer_key = str(len(st.session_state['db_states'][selected_database]['history'])) + '_gen_next'
         st.session_state['db_states'][selected_database]['history'].append({
@@ -180,6 +180,22 @@ def set_keepalive_options(http_conn):
         http_conn.default_socket_options += [(socket.SOL_TCP, socket.TCP_KEEPCNT, 6)]
 
 
+def redraw_conversation():
+    selected_database = st.session_state['selected_database']
+    for msg in st.session_state['db_states'][selected_database]['history']:
+        if msg['is_user']:
+            message(msg['text'], is_user=True, key=msg['key'], avatar_style="bottts", seed=3)
+        else:
+            message(msg['text'], key=msg['key'], avatar_style="bottts", seed=5)
+
+    source_documents = st.session_state['db_states'][selected_database].get('source_documents', [])
+    if source_documents:  # Check if there are any source documents
+        st.write("source:")
+        for idx, doc in enumerate(source_documents[0]):
+            st.write(f'> {doc["link"]}:')
+            st.write(doc["content"])
+
+
 def main():
     initialize_state()
     handle_file_upload()
@@ -207,13 +223,10 @@ def main():
                     'history': [],  # This will store both questions and answers
                     'source_documents': []
                 }
+            redraw_conversation()
         else:
             # If the database didn't change, display the history
-            for msg in st.session_state['db_states'][selected_database]['history']:
-                if msg['is_user']:
-                    message(msg['text'], is_user=True, key=msg['key'], avatar_style="bottts", seed=3)
-                else:
-                    message(msg['text'], key=msg['key'], avatar_style="bottts", seed=5)
+            redraw_conversation()
 
         handle_user_query()
 
