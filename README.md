@@ -73,11 +73,21 @@ Most importantly is that `GPU_IS_ENABLED` variable must be set to `true`.
 
 ## GPU (Linux):
 
+### Operating system application is running on
+
+OS_RUNNING_ENVIRONMENT=linux
+
 If you have an Nvidia GPU, you can speed things up by installing the llama-cpp-python version with CUDA by setting these flags:
 `export LLAMA_CUBLAS=1`
 
 ```shell
 pip3 install -r requirements_linux.txt
+```
+
+If you want TEXT-TO-SPEECH support you must install:
+
+```shell
+sudo apt install espeak
 ```
 
 First, you have to uninstall old torch installation and install CUDA one:
@@ -136,6 +146,10 @@ MODEL_ID_OR_PATH=models/ggml-vic13b-q5_1.bin
 
 ## GPU (Windows)
 
+### Operating system application is running on
+
+OS_RUNNING_ENVIRONMENT=windows
+
 ```shell
 pip3 install -r requirements_win.txt
 ```
@@ -165,11 +179,19 @@ Most importantly is that `GPU_IS_ENABLED` variable must be set to `false`.
 
 ## CPU (Linux):
 
+### Operating system application is running on
+
+OS_RUNNING_ENVIRONMENT=linux
+
 ```shell
 pip3 install -r requirements_linux.txt
 ```
 
 ## CPU (Windows):
+
+### Operating system application is running on
+
+OS_RUNNING_ENVIRONMENT=windows
 
 ```shell
 pip3 install -r requirements_win.txt
