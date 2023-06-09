@@ -381,6 +381,7 @@ if __name__ == "__main__":
         else:
             source_directories, persist_directories, collection_names = prompt_user()
             if source_directories == ingest_source_directory and persist_directories == ingest_persist_directory:
+                # here it's just only one database chosen
                 main(source_directories, persist_directories, collection_names)
             else:
                 for source_directory, persist_directory, collection_name in zip(

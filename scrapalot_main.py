@@ -127,9 +127,6 @@ def get_llm_instance():
 
 
 def main():
-    if args.log_level is not None:
-        scrapalot_logs.initialize_logging()
-
     llm = get_llm_instance()
     if llm is None:
         print("Could not initialize LLM instance.")
@@ -170,4 +167,7 @@ def main():
 
 
 if __name__ == "__main__":
+    if args.log_level is not None:
+        scrapalot_logs.initialize_logging()
+
     main()
