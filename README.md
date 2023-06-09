@@ -1,5 +1,6 @@
 # Scrapalot Chat
-Ask questions about your documents without an internet connection, using the power of LLMs. 100% private, no data leaves your execution environment at any point. 
+
+Ask questions about your documents without an internet connection, using the power of LLMs. 100% private, no data leaves your execution environment at any point.
 You can ingest documents and ask questions without an internet connection!
 
 ## Discord server
@@ -12,7 +13,7 @@ First you need to ingest some data to the `db` database folder by performing vec
 
 ![Ingest data](img/ingest_data.png)
 
-This will create database embeddings:  
+This will create database embeddings:
 
 ![Ingest created](img/ingest_data_separated_db.png)
 
@@ -20,12 +21,12 @@ Then you can start asking questions about your documents:
 
 ![QA init](img/question_asking_model_init.png)
 
-After which you should receive an answer. You can enter "n" to see new chunk of the document, 
+After which you should receive an answer. You can enter "n" to see new chunk of the document,
 "s" to speak the text.
 
 ![QA generated](img/question_asking_generated.png)
 
-You have and option to browse through the documents and read them per chunk by using 
+You have and option to browse through the documents and read them per chunk by using
 `scrapalot_browse.py` script. You can also filter some documents by name.
 
 ![Browse](img/browser_of_source_documents.png)
@@ -35,9 +36,9 @@ API:
 
 ![API](img/api_running.png)
 
-UI supports specifying collection in the database which can be a subgroup of 
+UI supports specifying collection in the database which can be a subgroup of
 documents you want to query later by collection name. For example, medicine books can have
-collections: allergy, immunology, anesthesiology, dermatology, radiology .... 
+collections: allergy, immunology, anesthesiology, dermatology, radiology ....
 
 | **NOTE: collections are under development** |
 |---------------------------------------------|
@@ -46,26 +47,35 @@ collections: allergy, immunology, anesthesiology, dermatology, radiology ....
 ![API](img/web_ui_question_answered.png)
 
 # Environment Setup
-In order to set your environment up to run the code here, first install all requirements. 
+
+In order to set your environment up to run the code here, first install all requirements.
 
 ## Conda environment
-It is recommended that you create a virtual environment to install all dependencies from 
+
+It is recommended that you create a virtual environment to install all dependencies from
 `requirements_*.txt` files, not to mix them with another Python version on your machine.
 
 - For conda environment:
+
 ```shell
 conda create --name scrapalot-chat python=3.10.11 && conda activate scrapalot-chat
 ```
 
 If you want to remove the conda environment, run this:
+
 ```shell
 conda remove -n scrapalot-chat --all
 ```
 
 # GPU
+
 Most importantly is that `GPU_IS_ENABLED` variable must be set to `true`.
 
 ## GPU (Linux):
+
+### Operating system application is running on
+
+OS_RUNNING_ENVIRONMENT=linux
 
 If you have an Nvidia GPU, you can speed things up by installing the llama-cpp-python version with CUDA by setting these flags:
 `export LLAMA_CUBLAS=1`
@@ -74,45 +84,78 @@ If you have an Nvidia GPU, you can speed things up by installing the llama-cpp-p
 pip3 install -r requirements_linux.txt
 ```
 
+If you want TEXT-TO-SPEECH support you must install:
+
+```shell
+sudo apt install espeak
+```
+
 First, you have to uninstall old torch installation and install CUDA one:
 Install a proper torch version:
+
 ```shell
 pip3 uninstall torch
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
 
+Now, set environment variables and source them:
+
+```shell
+vim ~/.bashrc
+```
+
+```shell
+export LLAMA_CUBLAS=1
+export LLAMA_CLBLAST=1 
+export CMAKE_ARGS=-DLLAMA_CUBLAS=on
+export FORCE_CMAKE=1
+```
+
+```shell
+source ~/.bashrc
+```
+
+### LLAMA
+
 llama.cpp doesn't work on windows with GPU, only with CPU, so you should try with a linux distro
 Installing torch with CUDA, will only speed up the vector search, not the writing by llama.cpp.
 
 You should install the latest cuda toolkit:
+
 ```shell
 conda install -c conda-forge cudatoolkitpip uninstall llama-cpp-python
 ```
 
-Now, set environment variables:
+if you're already in conda env you can uninstall llama-cpp-python like this:
+
 ```shell
-set LLAMA_CUBLAS=1
-set CMAKE_ARGS=-DLLAMA_CUBLAS=on
-set FORCE_CMAKE=1
+pip3 uninstall llama-cpp-python
 ```
 
 Install llama:
+
 ```shell
-pip install llama-cpp-python --no-cache-dir --verbose
+CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python==0.1.57 --no-cache-dir
 ```
 
 Modify LLM code to accept `n_gpu_layers`:
+
 ```shell
 llm = LlamaCpp(model_path=model_path, ..., n_gpu_layers=20)
 ```
 
 Change environment variable model:
+
 ```shell
 MODEL_TYPE=llamacpp
 MODEL_ID_OR_PATH=models/ggml-vic13b-q5_1.bin
 ```
 
 ## GPU (Windows)
+
+### Operating system application is running on
+
+OS_RUNNING_ENVIRONMENT=windows
 
 ```shell
 pip3 install -r requirements_win.txt
@@ -122,13 +165,13 @@ You can use the included installer batch file to install the required dependenci
 
 1. Install [NVidia CUDA 11.8](https://developer.nvidia.com/cuda-11-8-0-download-archive)
 2. Install `llama-cpp-python` package with cuBLAS enabled. Run the code below in the directory you want to build the package in.
-   - Powershell:
+    - Powershell:
 
     ```powershell
     $Env:CMAKE_ARGS="-DLLAMA_CUBLAS=on"; $Env:FORCE_CMAKE=1; pip3 install llama-cpp-python --force-reinstall --upgrade --no-cache-dir
     ```
 
-   - Bash:
+    - Bash:
 
     ```bash
     CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip3 install llama-cpp-python --force-reinstall --upgrade --no-cache-dir
@@ -138,15 +181,24 @@ You can use the included installer batch file to install the required dependenci
 4. Run `scrapalot_ingest.py` and `scrapalot_main.py` as usual
 
 # CPU
+
 Most importantly is that `GPU_IS_ENABLED` variable must be set to `false`.
 
 ## CPU (Linux):
+
+### Operating system application is running on
+
+OS_RUNNING_ENVIRONMENT=linux
 
 ```shell
 pip3 install -r requirements_linux.txt
 ```
 
 ## CPU (Windows):
+
+### Operating system application is running on
+
+OS_RUNNING_ENVIRONMENT=windows
 
 ```shell
 pip3 install -r requirements_win.txt
@@ -161,10 +213,11 @@ pip3 install -r requirements_mac.txt
 # LLM Models
 
 Then, download the LLM model and place it in a directory of your choice (for example: `models`):
+
 - `gpt4all`: [ggml-gpt4all-j-v1.3-groovy.bin](https://gpt4all.io/models/ggml-gpt4all-j-v1.3-groovy.bin)
-  - If you prefer a different GPT4All-J compatible model, just download it and reference it in your `.env` file.
-  - If you prefer a llama model, download [ggml-model-q4_0.bin](https://huggingface.co/Pi3141/alpaca-native-7B-ggml/tree/main)
-    - NOTE: you need to adapt `GPT4ALL_BACKEND`
+    - If you prefer a different GPT4All-J compatible model, just download it and reference it in your `.env` file.
+    - If you prefer a llama model, download [ggml-model-q4_0.bin](https://huggingface.co/Pi3141/alpaca-native-7B-ggml/tree/main)
+        - NOTE: you need to adapt `GPT4ALL_BACKEND`
 - `llamacpp`: [WizardLM-7B-uncensored.ggmlv3.q8_0.bin](https://huggingface.co/TheBloke/WizardLM-7B-uncensored-GGML/tree/8917029d1fecd37d2c3a395d399868bfd225ff36)
 - `llamacpp`: [ggml-vicuna-13b-1.1](https://huggingface.co/vicuna/ggml-vicuna-13b-1.1/tree/main)
 - `llamacpp`: [koala-7B.ggmlv3.q8_0.bin](https://huggingface.co/TheBloke/koala-7B-GGML/tree/main)
@@ -172,13 +225,13 @@ Then, download the LLM model and place it in a directory of your choice (for exa
 - `huggingface-hub`: Not yet implemented!
 - `openai`: Uses OpenAI API and gpt-4 model
 
-
 | **NOTE: huggingface-local & huggingface-hub are under development** |
 |---------------------------------------------------------------------|
 
 # Env variables
 
 Rename `example.env` to `.env` and edit the variables appropriately.
+
 ```ini
 OS_RUNNING_ENVIRONMENT: Operating system your application is running on.
 
@@ -227,6 +280,7 @@ Note: because of the way `langchain` loads the `SentenceTransformers` embeddings
 For each set of documents, create a new `subfolder` in the `source_documents` folder and place the files inside.
 
 The supported extensions are:
+
 - `.csv`: CSV,
 - `.docx`: Word Document,
 - `.doc`: Word Document,
@@ -288,12 +342,15 @@ It will create a subfolder in the `db` folder containing the local vectorstore. 
 You can ingest as many documents as you want, and all will be accumulated in the selected embeddings' database.
 If you want to start from an empty database, delete the subfolder inside the `db` folder, or create a new one using the scrapalot_ingest.py script.
 
-Note: during the ingest process, no data leaves your local environment. You could ingest without an internet connection, except for the first time you run the ingest script, when the embedding model is downloaded.
+Note: during the ingest process, no data leaves your local environment. You could ingest without an internet connection, except for the first time you run the ingest script, when the embedding model
+is downloaded.
 
 ## Ask questions to your documents!
 
 ### Console CLI
+
 In order to ask a question, run a command like this. Mute stream is the flag to hide generation of answer in the console:
+
 ```shell
 python scrapalot_main.py --mute-stream
 ```
@@ -315,15 +372,17 @@ Enter question (q for quit): How to be happy?
 Seeking for answer from: [psychology]. May take some minutes...
 ```
 
-The script also supports other optional command-line arguments to modify its behavior. 
+The script also supports other optional command-line arguments to modify its behavior.
 You can see a full list of these arguments by running this command in your terminal:
+
 ```shell 
 python scrapalot_main.py --help
 ```
 
 ### Web app
 
-Scrapalot has REST API built by `fastapi` (`scrapalot_main_api_run.py`), that API has to be running if you want to run the UI (`scrapalot_main_web.py`), which is based on `streamlit` / `streamlit-chat`.
+Scrapalot has REST API built by `fastapi` (`scrapalot_main_api_run.py`), that API has to be running if you want to run the UI (`scrapalot_main_web.py`), which is based
+on `streamlit` / `streamlit-chat`.
 
 To run the web:
 
@@ -332,10 +391,13 @@ streamlit run scrapalot_main_web.py
 ```
 
 # How does it work?
+
 Selecting the right local models and the power of `LangChain` you can run the entire pipeline locally, without any data leaving your environment, and with reasonable performance.
 
-- `scrapalot_ingest.py` uses `LangChain` tools to parse the document and create embeddings locally using `HuggingFaceEmbeddings` (`SentenceTransformers`). It then stores the result in a local vector database using `Chroma` vector store. 
-- `scrapalot_main.py` uses a local LLM based on `llamacpp, gpt4all, openai` to understand questions and create answers. The context for the answers is extracted from the local vector store using a similarity search to locate the right piece of context from the docs.
+- `scrapalot_ingest.py` uses `LangChain` tools to parse the document and create embeddings locally using `HuggingFaceEmbeddings` (`SentenceTransformers`). It then stores the result in a local vector
+  database using `Chroma` vector store.
+- `scrapalot_main.py` uses a local LLM based on `llamacpp, gpt4all, openai` to understand questions and create answers. The context for the answers is extracted from the local vector store using a
+  similarity search to locate the right piece of context from the docs.
 
 Note: you could turn off your internet connection, and the script inference would still work. No data gets out of your local environment.
 
@@ -344,6 +406,7 @@ Note: you could turn off your internet connection, and the script inference woul
 1. Put your data in `models` / `source_documents` in the project root folder (Can be customized changing the corresponding value in the `docker-compose.yaml`)
 
 2. If you want to do it manually, you can service by service, with docker compose
+
 ```
 docker-compose up --build scrapalot-chat
 ```
@@ -353,7 +416,7 @@ docker-compose up --build scrapalot-chat
 ## Python libraries
 
 1. [x] langchain: LangChain is a framework for developing applications powered by language models
-2. [x] gpt4all: A free-to-use, locally running, privacy-aware chatbot. No GPU or internet is required. 
+2. [x] gpt4all: A free-to-use, locally running, privacy-aware chatbot. No GPU or internet is required.
 3. [x] chromadb: A vector database, capable of embedding text
 4. [x] llama-cpp-python: Python bindings for CPP. Offers a web server which aims to act as a drop-in replacement for the OpenAI API
 5. [x] urllib3: A powerful, sanity-friendly HTTP client for Python.
@@ -361,7 +424,8 @@ docker-compose up --build scrapalot-chat
 7. [x] python-dotenv: Reads key-value pairs from a .env file and adds them to the environment variables.
 8. [x] unstructured, extract-msg, tabulate, pandoc, pypandoc, tqdm: Libraries related to handling and manipulating various data formats, tabulating data, and providing progress bars.
 9. [x] deep-translator: A flexible free and unlimited library to translate between different languages in a simple way using multiple translators.
-10. [x] openai, huggingface, huggingface_hub, sentence_transformers, transformers: Libraries related to machine learning and natural language processing, particularly for working with transformer models like GPT and BERT.
+10. [x] openai, huggingface, huggingface_hub, sentence_transformers, transformers: Libraries related to machine learning and natural language processing, particularly for working with transformer
+    models like GPT and BERT.
 11. [x] bitsandbytes, safetensors: Libraries that seem related to operations with bits, bytes, and tensors, but I can't find more detailed information as of my last update.
 12. [x] pyttsx3: A text-to-speech conversion library.
 13. [x] fastapi, uvicorn, gunicorn, python-multipart: Libraries for building APIs with Python and deploying them.
@@ -369,15 +433,19 @@ docker-compose up --build scrapalot-chat
 15. [x] psutil: A cross-platform library for accessing system details and process utilities.
 
 ## Python Version
+
 To use this software, you must have minimum Python `3.10` or later installed. Earlier versions of Python will not compile.
 
 ## C++ Compiler
+
 If you encounter an error while building a wheel during the `pip install` process, you may need to install a C++ compiler on your computer.
 
 ## Windows 10/11
+
 ### installation of packages
 
 Install the required packages (on MacOS):
+
 ```shell
 pip3 install -r requirements_win.txt
 ```
@@ -386,23 +454,28 @@ To install a C++ compiler on Windows 10/11, follow these steps:
 
 1. Install Visual Studio 2022.
 2. Make sure the following components are selected:
-   * Universal Windows Platform development
-   * C++ CMake tools for Windows
+    * Universal Windows Platform development
+    * C++ CMake tools for Windows
 3. Download the MinGW installer from the [MinGW website](https://sourceforge.net/projects/mingw/).
 4. Run the installer and select the `gcc` component.
 
-## Mac OS 
+## Mac OS
+
 ### installation of packages
 
 Install the required packages (on MacOS):
+
 ```shell
 pip3 install -r requirements_mac.txt
 ```
 
 ### Intel Chip
+
 When running a Mac with Intel hardware (not M1), you may run into `_clang: error: the clang compiler does not support '-march=native'_ during pip install`.
 
 If so, set your `archflags` during pip install. Eg: `_ARCHFLAGS="-arch x86_64" pip3 install -r requirements_mac.txt_`
 
 # Disclaimer
-This is a test project to validate the feasibility of a fully private solution for question answering using LLMs and Vector embeddings. It is not production ready, and it is not meant to be used in production. The model selection is not optimized for performance, but for privacy; but it is possible to use different models and vector stores to improve performance.
+
+This is a test project to validate the feasibility of a fully private solution for question answering using LLMs and Vector embeddings. It is not production ready, and it is not meant to be used in
+production. The model selection is not optimized for performance, but for privacy; but it is possible to use different models and vector stores to improve performance.

@@ -54,7 +54,7 @@ def process_database_question(database_name, llm, collection_name: Optional[str]
                 embedding_function=embeddings,
                 collection_name=collection_name if collection_name else args.collection,
                 client_settings=chromaDB_manager.get_chroma_setting(persist_dir)
-    )
+                )
 
     retriever = db.as_retriever(search_kwargs={"k": ingest_target_source_chunks if ingest_target_source_chunks else args.ingest_target_source_chunks})
 
