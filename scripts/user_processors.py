@@ -34,12 +34,12 @@ def print_document_chunk(doc):
         document_page = GoogleTranslator(source=translate_src, target=translate_dst).translate(document_page)
     wrapper = textwrap.TextWrapper(initial_indent='\033[37m', subsequent_indent='\033[37m', width=120)
     print(f"{wrapper.fill(document_page)}\033[0m\n")
-    # print(f'\n\033[94m"n" -> next, "s" -> speak, "q" -> quit: \033[0m')
-    # user_input = input()
-    # if user_input.lower() == 'q':
-    #     exit(0)
-    # elif user_input.lower() == 's':
-    #     speak(document_page)
+    print(f'\n\033[94m"n" -> next, "s" -> speak, "q" -> quit: \033[0m')
+    user_input = input()
+    if user_input.lower() == 'q':
+        exit(0)
+    elif user_input.lower() == 's':
+        speak(document_page)
 
 
 def process_database_question(database_name, llm, collection_name: Optional[str]):
@@ -54,7 +54,7 @@ def process_database_question(database_name, llm, collection_name: Optional[str]
                 embedding_function=embeddings,
                 collection_name=collection_name if collection_name else args.collection,
                 client_settings=chromaDB_manager.get_chroma_setting(persist_dir)
-    )
+                )
 
     retriever = db.as_retriever(search_kwargs={"k": ingest_target_source_chunks if ingest_target_source_chunks else args.ingest_target_source_chunks})
 
