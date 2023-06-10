@@ -138,9 +138,10 @@ def process_documents(source_directory: str, ignored_files: List[str] = []) -> L
     """
     print(f"Loading documents from {source_directory}")
     documents = load_documents(source_directory, ignored_files)
+    texts: list[Document] = []
     if not documents:
         print("No new documents to load")
-        exit(0)
+        return texts
     print(f"Loaded {len(documents)} new documents from {source_directory}")
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=ingest_chunk_size if ingest_chunk_size else args.ingest_chunk_size,
@@ -175,21 +176,23 @@ def tag_collection(database_name: str, db_collection_name: str):
     :param db_collection_name: The desired collection name.
     """
     client = chromaDB_manager.get_client(database_name)
+    for col in client.list_collections():
+        print(col)
 
     try:
         default_collection = client.get_collection(name='langchain')
         if default_collection:
-            default_collection.modify(name=db_collection_name)
-        else:
+            client.delete_collection(name='langchain')
+
+        collection = client.get_collection(name=db_collection_name)
+        if collection:
             client.get_or_create_collection(name=db_collection_name)
     except TypeError:
         print("TypeError occurred")
     except ValueError as ve:
         print(f"ValueError occurred: {ve}")
-        if "does not exist" in str(ve):
-            pass  # Collection doesn't exist, continue without deleting
-        else:
-            raise ve  # Re-raise the exception for other ValueError cases
+        client.get_or_create_collection(name=db_collection_name)
+        pass
     except Exception as e:
         print("Some other exception occurred: ", str(e))
 
@@ -279,9 +282,8 @@ def prompt_user():
                         db_collection_name = selected_directory
 
                         if not os.listdir(selected_directory_path):
-                            print(f"Error: Directory '{selected_directory}' is empty.")
-                            print("Please create files in the directory or choose another.")
-                            directories = _display_directories()  # Display directories again if the selected one is empty
+                            print(f"\033[91m\033[1m[!]\033[0m Selected directory: '{selected_directory}' is empty \033[91m\033[1m[!]\033[0m")
+                            pass  # ignore
                         else:
                             if not os.path.exists(selected_db_path):
                                 os.makedirs(selected_db_path)
@@ -336,8 +338,11 @@ def main(source_dir: str, persist_dir: str, db_collection_name: str):
             texts = []
         num_elements = len(texts)  # Calculate the total number of documents in texts
         index_metadata = {"elements": num_elements}  # Provide the "elements" key
-        print(f"Creating embeddings. May take some minutes...")
-        db.add_documents(texts, index_metadata=index_metadata)
+        if num_elements > 0:
+            print(f"Creating embeddings. May take some minutes...")
+            db.add_documents(texts, index_metadata=index_metadata)
+        else:
+            print(f"Nothing to embed to {persist_dir}.")
     else:
         # Create and store locally vectorstore
         print(f"Creating new vectorstore from {source_dir}")
@@ -385,7 +390,7 @@ if __name__ == "__main__":
                 main(source_directories, persist_directories, collection_names)
             else:
                 for source_directory, persist_directory, collection_name in zip(
-                        source_directories, persist_directories, collection_names
+                        sorted(source_directories), sorted(persist_directories), sorted(collection_names)
                 ):
                     tag_collection(os.path.basename(persist_directory), collection_name)
                     main(source_directory, persist_directory, collection_name)
