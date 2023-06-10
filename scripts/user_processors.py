@@ -10,8 +10,8 @@ from langchain.chains.retrieval_qa.base import BaseRetrievalQA
 from langchain.embeddings import OpenAIEmbeddings, HuggingFaceEmbeddings
 from langchain.vectorstores import Chroma
 from openai.error import AuthenticationError
-from pyttsx3 import speak
 
+from scrapalot_browse import speak_chunk
 from .user_environment import translate_dst, translate_src, translate_docs, translate_q, translate_a, ingest_target_source_chunks, args, openai_use, ingest_embeddings_model, chromaDB_manager, \
     gpu_is_enabled
 
@@ -39,7 +39,7 @@ def print_document_chunk(doc):
     if user_input.lower() == 'q':
         exit(0)
     elif user_input.lower() == 's':
-        speak(document_page)
+        speak_chunk(document_page)
 
 
 def process_database_question(database_name, llm, collection_name: Optional[str]):

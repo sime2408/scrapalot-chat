@@ -154,16 +154,16 @@ def main():
 
         for i in range(len(qa_list)):
             start_time = monotonic()
-            print(f"\n\n\033[94mSeeking for answer from: [{selected_directory_list[i]}]. May take some minutes...\033[0m")
             qa = qa_list[i]
 
+            print(f"\n\n\033[94mSeeking for answer from: [{selected_directory_list[i]}]. May take some minutes...\033[0m")
             answer, docs = process_query(qa, query, chat_history, db_get_only_relevant_docs)
+            print(f"\n\033[94mTook {round(((monotonic() - start_time) / 60), 2)} min to process the answer!\033[0m")
 
             if docs is not None:
                 for doc in docs:
                     print_hyperlink(doc)
                     print_document_chunk(doc)
-                print(f"\n\033[94mTook {round(((monotonic() - start_time) / 60), 2)} min to process the answer!\033[0m")
 
 
 if __name__ == "__main__":

@@ -35,6 +35,8 @@ def print_all_voices_helper():
         engine.setProperty('voice', voice.id)
 
 
+print_all_voices_helper()
+
 LOADER_MAPPING = {
     ".doc": (UnstructuredWordDocumentLoader, {}),
     ".docx": (UnstructuredWordDocumentLoader, {}),
@@ -84,7 +86,7 @@ def stop_voice():
     engine.stop()
 
 
-def speak(content):
+def speak_chunk(content):
     if not translate_docs:
         engine.setProperty('voice', voices[0].id)
     else:
@@ -199,7 +201,7 @@ def run_program():
                             start_index = end_index
                             continue
                         elif user_input.lower() == 's':
-                            speak(justified_content)
+                            speak_chunk(justified_content)
                             start_index = end_index
                             continue
                         elif user_input.lower() == 'b':
