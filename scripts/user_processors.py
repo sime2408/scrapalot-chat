@@ -10,8 +10,8 @@ from langchain.chains.retrieval_qa.base import BaseRetrievalQA
 from langchain.embeddings import OpenAIEmbeddings, HuggingFaceEmbeddings
 from langchain.vectorstores import Chroma
 from openai.error import AuthenticationError
+from pyttsx3 import speak
 
-from scrapalot_browse import speak
 from .user_environment import translate_dst, translate_src, translate_docs, translate_q, translate_a, ingest_target_source_chunks, args, openai_use, ingest_embeddings_model, chromaDB_manager, \
     gpu_is_enabled
 

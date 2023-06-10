@@ -2,6 +2,16 @@
 version: "3.9"
 services:
 
+  #
+  # For ingest without cuda:
+  # docker compose run --rm --build scrapalot-chat-ingest
+  #
+  scrapalot-chat-ingest:
+    container_name: scrapalot-chat-ingest
+    extends:
+      service: scrapalot-chat-api
+    command: [ "python", "scrapalot_ingest.py" ]
+
   scrapalot-chat-api:
     container_name: scrapalot-chat-api
     image: scrapalot-chat:latest
@@ -9,7 +19,7 @@ services:
       context: .
       dockerfile: ./Dockerfile
       args: [ "BASEIMAGE=python:3.10.11" ]
-    command: ["python", "scrapalot_main_api_run.py"]
+    command: [ "python", "scrapalot_main_api_run.py" ]
     deploy:
       resources:
         limits:
@@ -37,7 +47,7 @@ services:
     ports:
       - "8501:8501"
     environment:
-      - API_BASE_URL=http://scrapalot-chat-api-cuda-11.8:8080
+      - API_BASE_URL=http://scrapalot-chat-api:8080
       # - API_BASE_URL=http://scrapalot-chat-api:8080
       - OS_RUNNING_ENVIRONMENT=linux
       - INGEST_PERSIST_DIRECTORY=db
@@ -47,7 +57,7 @@ services:
       - MODEL_N_CTX=1000
     depends_on:
       #- scrapalot-chat-api
-      - scrapalot-chat-api-cuda-11.8
+      - scrapalot-chat-api
     volumes:
       - ./models:/home/scrapalot/scrapalot-chat/models
       - ./db:/home/scrapalot/scrapalot-chat/db
@@ -89,16 +99,6 @@ services:
       - ./source_documents:/home/scrapalot/scrapalot-chat/source_documents
 
   #
-  # For ingest without cuda:
-  # docker compose run --rm --build scrapalot-chat-ingest
-  #
-  scrapalot-chat-ingest:
-    container_name: scrapalot-chat-ingest
-    extends:
-      service: scrapalot-chat-api
-    command: ["python", "scrapalot_ingest.py"]
-
-  #
   # To ingest using cuda 11.8:
   # docker compose run --rm --build scrapalot-chat-api-cuda-11.8-ingest
   #
@@ -106,7 +106,7 @@ services:
     container_name: scrapalot-chat-api-cuda-11.8-ingest
     extends:
       service: scrapalot-chat-api-cuda-11.8
-    command: ["python", "scrapalot_ingest.py"]
+    command: [ "python", "scrapalot_ingest.py" ]
 
   # Check your system's version using
   # docker compose run --rm check-cuda-version
@@ -126,7 +126,7 @@ services:
 
   check-cuda-version:
     image: ubuntu
-    command: [nvidia-smi]
+    command: [ nvidia-smi ]
   check-cuda-11.8:
     extends: scrapalot-chat-api-cuda-11.8
-    command: [nvidia-smi]
+    command: [ nvidia-smi ]

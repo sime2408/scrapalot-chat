@@ -7,7 +7,7 @@
       supported in the terminal.
     - GPU-enabled flags to turn it on or off
     - added some images to the README.md on how the app works
-    - added separate requirements_linux.txt, and requirements_win.txt with package differences for each OS,
+    - added separate requirements_linux.txt, and requirements_windows.txt with package differences for each OS,
     - fixes in ingest file to skip unparsable files and removed default countdown in the terminal when the prompt is waiting for user input
     - more descriptive messages in the command line
     - translation of answers, and source chunks from books are disabled by default because they contact Google Translate over the network, and not all languages are supported for now, the same states
@@ -18,3 +18,7 @@
     - CUDA testing on Linux
     - added support for text-to-speach espeak library on linux
     - ingest of files can now be performed in batch, meaning you can separate by comma indexes of source directories you want to ingest (only available in terminal)
+
+- **10.06.2023**
+    - CUDA GPU now works on windows, updated instructions inside README.md
+    - CUDA GPU linux testing

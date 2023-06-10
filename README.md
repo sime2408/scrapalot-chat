@@ -9,39 +9,195 @@ You can ingest documents and ask questions without an internet connection!
 
 ## How is it working?
 
-First you need to ingest some data to the `db` database folder by performing vectorstore embeddings:
+### Ingestion of documents to the database
 
-![Ingest data](img/ingest_data.png)
+#### Env variables
+
+Rename `example.env` to `.env` and edit the variables appropriately.
+
+```ini
+OS_RUNNING_ENVIRONMENT: Operating system your application is running on.
+
+INGEST_PERSIST_DIRECTORY: is the folder you want your vectorstore in
+INGEST_SOURCE_DIRECTORY: from where books will be parsed
+INGEST_EMBEDDINGS_MODEL: SentenceTransformers embeddings model name (see https://www.sbert.net/docs/pretrained_models.html)
+INGEST_CHUNK_SIZE: default chunk size of texts when performing an ingest
+INGEST_OVERLAP: default chunk overlap of texts when performing an ingest
+INGEST_TARGET_SOURCE_CHUNKS: The amount of chunks (sources) that will be used to answer a question
+
+MODEL_TYPE: supports llamacpp, gpt4all, openai, huggingface-local, huggingface-hub
+MODEL_ID_OR_PATH: Path to your gpt4all or llamacpp supported LLM
+MODEL_N_CTX: Token context window. Maximum token limit for the LLM model
+MODEL_TEMPERATURE: Temperature between 0.0 & 1.0. If 0 it will return exact answers from the books
+MODEL_USE_MLOCK: If this value is set to 1, the entire model will be loaded into RAM (avoid using the disk but use more RAM), 
+if you have little RAM, set this value to 0
+MODEL_VERBOSE: Turn on or off model debugging
+MODEL_N_BATCH:  the number of tokens processed at any one time. The lower this value, the less hardware resources will be required, 
+but the query may be very slow; a high value, on the other hand, speeds things up at the cost of higher memory usage.
+MODEL_N_THREADS: How much threads will be used when model process the data
+MODEL_TOP_P: The top-p value to use for sampling.
+
+TRANSLATE_QUESTION: Whether or not turn on translation of questionto english. Based on GoogleTranslate HTTP calls.
+TRANSLATE_ANSWER: Whether or not turn on translation of answers from english to your language
+TRANSLATE_SRC_LANG: If you want to translate answers from this language
+TRANSLATE_DST_LANG: If you want to translate answers to this language
+
+CLI_COLUMN_WIDTH: How wide will be each column when printing subdirectories of database or source documenets
+CLI_COLUMN_NUMBER: How many columns by default will be shown in CLI
+
+DB_GET_ONLY_RELEVANT_DOCS: If this is set to `true` only documents will be returned from the database. Program won't go through the process of sending chunks to the LLM.
+
+OPENAI_USE: Whether to use this model or not, if yes, different embeddings should be used
+
+GPU_IS_ENABLED: Whether or not your GPU environment is enabled.
+
+OPENAI_API_KEY: OpenAI key for http calls to OpenAI GPT-4 API
+HUGGINGFACEHUB_API_TOKEN: Token to connect to huggingface and download the models
+GPT4ALL_BACKEND: backend type of GPT4All model. Can be gptj or llama (ggml-model-q4_0.bin)
+```
+
+Note: because of the way `langchain` loads the `SentenceTransformers` embeddings, the first time you run the script
+it will require internet connection to download the embeddings model itself.
+
+#### Instructions for ingesting your own dataset
+
+For each set of documents, create a new sub-folders (1 level) in the `source_documents` folder and place the files inside sub-folders.
+The supported extensions are:
+
+- `.csv`: CSV,
+- `.docx`: Word Document,
+- `.doc`: Word Document,
+- `.enex`: EverNote,
+- `.eml`: Email,
+- `.epub`: EPub,
+- `.html`: HTML File,
+- `.md`: Markdown,
+- `.msg`: Outlook Message,
+- `.odt`: Open Document Text,
+- `.pdf`: Portable Document Format (PDF),
+- `.pptx` : PowerPoint Document,
+- `.ppt` : PowerPoint Document,
+- `.txt`: Text file (UTF-8),
+- `.json`: Text file (jq_schema),
+
+First you need to ingest some data to the `db` database folder by performing vectorstore embeddings.
+Your `source_documents` will be shown in 4 columns listed so you can choose which database to ingest.
+It is possible to choose more than 1 index number by separating them by comma, for example `1,2`
+
+```shell
+python scrapalot_ingest.py
+```
+
+You will be presented with options to choose existing source directory,
+create new one (where you will place your files), or just use the latest one recorded as environment
+variable in the `.env` file.
 
 This will create database embeddings:
 
 ![Ingest created](img/ingest_data_separated_db.png)
 
-Then you can start asking questions about your documents:
+### QA application
 
-![QA init](img/question_asking_model_init.png)
+To start the main application most importantly is to download the proper model to the `models` folder and set `.env` variables:
 
-After which you should receive an answer. You can enter "n" to see new chunk of the document,
-"s" to speak the text.
+```dotenv
+MODEL_TYPE=llamacpp
+MODEL_ID_OR_PATH=models/vicuna-13b-1.1.ggmlv3.q6_K.bin
+```
 
-![QA generated](img/question_asking_generated.png)
+Supported `MODEL_TYPE` are: `llamacpp, gpt4all, openai, huggingface-local, huggingface-hub`.
+If you choose `openai`, you have to set `OPENAI_API_KEY` env variable.
 
-You have and option to browse through the documents and read them per chunk by using
-`scrapalot_browse.py` script. You can also filter some documents by name.
+#### LLM Models
 
-![Browse](img/browser_of_source_documents.png)
+LLM models tested, and placed under `models` directory:
 
-Scrapalot supports REST API to integrate UI, but also support UI already created by streamlit:
-API:
+- `gpt4all`: [ggml-gpt4all-j-v1.3-groovy.bin](https://gpt4all.io/models/ggml-gpt4all-j-v1.3-groovy.bin)
+    - If you prefer a different `GPT4All-J` compatible model, just download it and reference it in your `.env` file.
+    - If you prefer a llama model, download [ggml-model-q4_0.bin](https://huggingface.co/Pi3141/alpaca-native-7B-ggml/tree/main)
+        - NOTE: you need to adapt `GPT4ALL_BACKEND`
+- `llamacpp`: [WizardLM-7B-uncensored.ggmlv3.q8_0.bin](https://huggingface.co/TheBloke/WizardLM-7B-uncensored-GGML/tree/8917029d1fecd37d2c3a395d399868bfd225ff36)
+- `llamacpp`: [ggml-vicuna-13b-1.1](https://huggingface.co/vicuna/ggml-vicuna-13b-1.1/tree/main)
+- `llamacpp`: [koala-7B.ggmlv3.q8_0.bin](https://huggingface.co/TheBloke/koala-7B-GGML/tree/main)
+- `openai`: Uses OpenAI API and `gpt-4` model
+- `huggingface-local`: [TheBloke/guanaco-7B-HF](https://huggingface.co/TheBloke/guanaco-7B-HF)
+- `huggingface-hub`: **Not yet implemented!**
 
-![API](img/api_running.png)
+| **NOTE: huggingface-local & huggingface-hub are under development** |
+|---------------------------------------------------------------------|
 
-UI supports specifying collection in the database which can be a subgroup of
-documents you want to query later by collection name. For example, medicine books can have
-collections: allergy, immunology, anesthesiology, dermatology, radiology ....
+You can start asking questions about your documents, by running:
 
-| **NOTE: collections are under development** |
-|---------------------------------------------|
+```shell
+python scrapalot_main.py --mute-stream
+```
+
+Argument `mute-stream` here indicates that LLM won't stream answer to the console but will rather generate it
+at once when generation is finished. List of available arguments are:
+
+- `--ingest-dbname`: If you want to directly specify which database you want to ingest without going to q/a CLI steps.
+- `--collection`: Saves the embedding in a collection name. This enables you to granulate your database into section.
+  Later, from the UI you can choose database and collection to isolate your question there.
+  By default, your main collection will be named after your database name. As an example, database `medicine`
+  can have collections: `allergy`, `immunology`, `anesthesiology`, `dermatology`, `radiology`..., and so on.
+- `--hide-source`: Use this flag to disable printing of source documents and book chunk of document from vectorstore
+  showed after answers is generated.
+- `--mute-stream`: Use this flag to disable the streaming StdOut callback for LLMs.
+- `--ingest-embeddings-model`: Embeddings model name
+- `--model-path-or-id`: Model path
+- `--ingest-chunk-size`: Chunk size of how many characters you want to chunk your documents
+  (needed because LLMs limits number of input tokens)
+- `--ingest-chunk-overlap`: Chunk overlap
+- `--ingest-target-source-chunks`: Target source chunks
+- `--log-level`: Set log level, for example `-l INFO`. This is convenient while testing various LLMs, files will be stored
+  under `logs` folder.
+
+You can also run `--help` to see available options:
+
+```shell 
+python scrapalot_main.py --help
+```
+
+You need to choose index number of the `db` folder documents to indicate
+which database you want to ask questions to. After which you should receive an answer.
+
+You can enter "n" to see new chunk of the document, "s" to speak the text, or "b" to go back in the folder
+structure.
+
+### Document browser
+
+You have and option to browse through the documents and read them per chunk by using:
+
+```shell
+python scrapalot_browse.py
+```
+
+You can also filter some documents by name, read chunks of books text, step forward pressing `"n" + Enter`, speak text pressing `"s" + Enter`.
+
+### REST API
+
+Scrapalot has REST API built by `fastapi` that has to be running if you want to run the UI:
+
+```shell
+python scrapalot_main_api_run.py
+```
+
+Scrapalot supports REST API to integrate UI, you can develop your own, but we support UI already created by streamlit:
+API runs by default at port 8080, and it's required for streamlit UI to be started first.
+API address is manipulated by changing `API_BASE_URL` env parameter.
+
+### UI
+
+UI is based on `streamlit` / `streamlit-chat`. To run the web:
+
+```shell
+streamlit run scrapalot_main_web.py
+```
+
+UI supports specifying `database` and `collection` in the database where the questions would be asked.
+
+| **NOTE: collections support are under development (for now they're ignored) ** |
+|--------------------------------------------------------------------------------|
 
 ![API](img/web_ui_asked_question.png)
 ![API](img/web_ui_question_answered.png)
@@ -67,18 +223,52 @@ If you want to remove the conda environment, run this:
 conda remove -n scrapalot-chat --all
 ```
 
-# GPU
+If you use conda environment, and you want to parse `epub` books, you'll have to install `pypandoc` and `pandoc` inside conda environment.
+
+```shell
+conda install -c conda-forge pypandoc
+conda install -c anaconda pandoc
+```
+
+# CPU processor
+
+CPU is slower than GPU but if your system does not have this support you will have to set `GPU_IS_ENABLED` variable to `false`.
+GPU acceleration is available on `NVIDIA` graphic cards and can speed up generation of answers by 80% (depends on hardware)
+
+## CPU (Linux):
+
+Set `OS_RUNNING_ENVIRONMENT=linux` inside `.env` file
+
+```shell
+pip3 install -r requirements_linux.txt
+```
+
+## CPU (Windows 10/11):
+
+Set `OS_RUNNING_ENVIRONMENT=windows` inside `.env` file
+
+```shell
+pip3 install -r requirements_windows.txt
+```
+
+## CPU (MacOs):
+
+Set `OS_RUNNING_ENVIRONMENT=mac` inside `.env` file
+
+```shell
+pip3 install -r requirements_mac.txt
+```
+
+# GPU acceleration
 
 Most importantly is that `GPU_IS_ENABLED` variable must be set to `true`.
 
 ## GPU (Linux):
 
-### Operating system application is running on
+Set `OS_RUNNING_ENVIRONMENT=linux` inside `.env` file
 
-OS_RUNNING_ENVIRONMENT=linux
-
-If you have an Nvidia GPU, you can speed things up by installing the llama-cpp-python version with CUDA by setting these flags:
-`export LLAMA_CUBLAS=1`
+If you have an Nvidia GPU, you can speed things up by installing the `llama-cpp-python` version with CUDA
+by setting these flags: `export LLAMA_CUBLAS=1`
 
 ```shell
 pip3 install -r requirements_linux.txt
@@ -135,7 +325,7 @@ pip3 uninstall llama-cpp-python
 Install llama:
 
 ```shell
-CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python==0.1.57 --no-cache-dir
+CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python==0.1.61 --no-cache-dir
 ```
 
 Modify LLM code to accept `n_gpu_layers`:
@@ -153,262 +343,78 @@ MODEL_ID_OR_PATH=models/ggml-vic13b-q5_1.bin
 
 ## GPU (Windows)
 
-### Operating system application is running on
-
-OS_RUNNING_ENVIRONMENT=windows
+Set `OS_RUNNING_ENVIRONMENT=windows` inside `.env` file
 
 ```shell
-pip3 install -r requirements_win.txt
+pip3 install -r requirements_windows.txt
 ```
+
+Install Visual Studio 2019 - 2022 Code C++ compiler on Windows 10/11:
+
+1. Install Visual Studio.
+2. Make sure the following components are selected:
+    * Universal Windows Platform development
+    * C++ `CMake` tools for Windows
+3. Download the `MinGW` installer from the [MinGW website](https://sourceforge.net/projects/mingw/).
+4. Run the installer and select the `gcc` component.
 
 You can use the included installer batch file to install the required dependencies for GPU acceleration, or:
 
-1. Install [NVidia CUDA 11.8](https://developer.nvidia.com/cuda-11-8-0-download-archive)
-2. Install `llama-cpp-python` package with cuBLAS enabled. Run the code below in the directory you want to build the package in.
+1. Find your card driver here [NVIDIA Driver Downloads](https://www.nvidia.com/download/index.aspx)
+2. Install [NVidia CUDA 11.8](https://developer.nvidia.com/cuda-11-8-0-download-archive?target_os=Windows&target_arch=x86_64)
+3. Install `llama-cpp-python` package with `cuBLAS` enabled. Run the code below in the directory you want to build the package in.
     - Powershell:
-
     ```powershell
     $Env:CMAKE_ARGS="-DLLAMA_CUBLAS=on"; $Env:FORCE_CMAKE=1; pip3 install llama-cpp-python --force-reinstall --upgrade --no-cache-dir
     ```
 
     - Bash:
-
     ```bash
     CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip3 install llama-cpp-python --force-reinstall --upgrade --no-cache-dir
     ```
 
-3. Enable GPU acceleration in `.env` file by setting `GPU_IS_ENABLED` to `true`
-4. Run `scrapalot_ingest.py` and `scrapalot_main.py` as usual
-
-# CPU
-
-Most importantly is that `GPU_IS_ENABLED` variable must be set to `false`.
-
-## CPU (Linux):
-
-### Operating system application is running on
-
-OS_RUNNING_ENVIRONMENT=linux
-
-```shell
-pip3 install -r requirements_linux.txt
-```
-
-## CPU (Windows):
-
-### Operating system application is running on
-
-OS_RUNNING_ENVIRONMENT=windows
-
-```shell
-pip3 install -r requirements_win.txt
-```
-
-## CPU (MacOs):
-
-```shell
-pip3 install -r requirements_mac.txt
-```
-
-# LLM Models
-
-Then, download the LLM model and place it in a directory of your choice (for example: `models`):
-
-- `gpt4all`: [ggml-gpt4all-j-v1.3-groovy.bin](https://gpt4all.io/models/ggml-gpt4all-j-v1.3-groovy.bin)
-    - If you prefer a different GPT4All-J compatible model, just download it and reference it in your `.env` file.
-    - If you prefer a llama model, download [ggml-model-q4_0.bin](https://huggingface.co/Pi3141/alpaca-native-7B-ggml/tree/main)
-        - NOTE: you need to adapt `GPT4ALL_BACKEND`
-- `llamacpp`: [WizardLM-7B-uncensored.ggmlv3.q8_0.bin](https://huggingface.co/TheBloke/WizardLM-7B-uncensored-GGML/tree/8917029d1fecd37d2c3a395d399868bfd225ff36)
-- `llamacpp`: [ggml-vicuna-13b-1.1](https://huggingface.co/vicuna/ggml-vicuna-13b-1.1/tree/main)
-- `llamacpp`: [koala-7B.ggmlv3.q8_0.bin](https://huggingface.co/TheBloke/koala-7B-GGML/tree/main)
-- `huggingface-local`: [TheBloke/guanaco-7B-HF](https://huggingface.co/TheBloke/guanaco-7B-HF)
-- `huggingface-hub`: Not yet implemented!
-- `openai`: Uses OpenAI API and gpt-4 model
-
-| **NOTE: huggingface-local & huggingface-hub are under development** |
-|---------------------------------------------------------------------|
-
-# Env variables
-
-Rename `example.env` to `.env` and edit the variables appropriately.
-
-```ini
-OS_RUNNING_ENVIRONMENT: Operating system your application is running on.
-
-INGEST_PERSIST_DIRECTORY: is the folder you want your vectorstore in
-INGEST_SOURCE_DIRECTORY: from where books will be parsed
-INGEST_EMBEDDINGS_MODEL: SentenceTransformers embeddings model name (see https://www.sbert.net/docs/pretrained_models.html)
-INGEST_CHUNK_SIZE: default chunk size of texts when performing an ingest
-INGEST_OVERLAP: default chunk overlap of texts when performing an ingest
-INGEST_TARGET_SOURCE_CHUNKS: The amount of chunks (sources) that will be used to answer a question
-
-MODEL_TYPE: supports llamacpp, gpt4all, openai, huggingface-local, huggingface-hub
-MODEL_ID_OR_PATH: Path to your gpt4all or llamacpp supported LLM
-MODEL_N_CTX: Token context window. Maximum token limit for the LLM model
-MODEL_TEMPERATURE: Temperature between 0.0 & 1.0. If 0 it will return exact answers from the books
-MODEL_USE_MLOCK: If this value is set to 1, the entire model will be loaded into RAM (avoid using the disk but use more RAM), 
-if you have little RAM, set this value to 0
-MODEL_VERBOSE: Turn on or off model debugging
-MODEL_N_BATCH:  the number of tokens processed at any one time. The lower this value, the less hardware resources will be required, 
-but the query may be very slow; a high value, on the other hand, speeds things up at the cost of higher memory usage.
-MODEL_N_THREADS: How much threads will be used when model process the data
-MODEL_TOP_P: The top-p value to use for sampling.
-
-TRANSLATE_QUESTION: Whether or not turn on translation of questionto english. Based on GoogleTranslate HTTP calls.
-TRANSLATE_ANSWER: Whether or not turn on translation of answers from english to your language
-TRANSLATE_SRC_LANG: If you want to translate answers from this language
-TRANSLATE_DST_LANG: If you want to translate answers to this language
-
-CLI_COLUMN_WIDTH: How wide will be each column when printing subdirectories of database or source documenets
-CLI_COLUMN_NUMBER: How many columns by default will be shown in CLI
-
-DB_GET_ONLY_RELEVANT_DOCS: If this is set to `true` only documents will be returned from the database. Program won't go through the process of sending chunks to the LLM.
-
-OPENAI_USE: Whether to use this model or not, if yes, different embeddings should be used
-
-GPU_IS_ENABLED: Whether or not your GPU environment is enabled.
-
-OPENAI_API_KEY: OpenAI key for http calls to OpenAI GPT-4 API
-HUGGINGFACEHUB_API_TOKEN: Token to connect to huggingface and download the models
-GPT4ALL_BACKEND: backend type of GPT4All model. Can be gptj or llama (ggml-model-q4_0.bin)
-```
-
-Note: because of the way `langchain` loads the `SentenceTransformers` embeddings, the first time you run the script it will require internet connection to download the embeddings model itself.
-
-# Instructions for ingesting your own dataset
-
-For each set of documents, create a new `subfolder` in the `source_documents` folder and place the files inside.
-
-The supported extensions are:
-
-- `.csv`: CSV,
-- `.docx`: Word Document,
-- `.doc`: Word Document,
-- `.enex`: EverNote,
-- `.eml`: Email,
-- `.epub`: EPub,
-- `.html`: HTML File,
-- `.md`: Markdown,
-- `.msg`: Outlook Message,
-- `.odt`: Open Document Text,
-- `.pdf`: Portable Document Format (PDF),
-- `.pptx` : PowerPoint Document,
-- `.ppt` : PowerPoint Document,
-- `.txt`: Text file (UTF-8),
-- `.json`: Text file (jq_schema),
-
-If you use conda environment, and you want to parse `epub` books, you have to install `pypandoc` inside conda environment.
-
-```shell
-conda install -c conda-forge pypandoc
-conda install -c anaconda pandoc
-```
-
-Run the following command to ingest all the data.
-Follow the instructions to select the correct set of source documents. The screen will ask you which `subfolder` you want to ingest.
-
-```shell
-python scrapalot_ingest.py
-```
-
-Output should look like this:
-
-```shell
-Select an option or 'q' to quit:
-
-1. Select existing directory
-2. Create a new directory
-3. Use current source_directory: ./source_documents/ufo
-
-
-Enter your choice [1]: 1
-
-Seconds remaining: 10 to choose option [1]. 
-
-Existing directories in ./source_documents:
-1. psychology
-2. medicine
-
-Enter the number of the existing directory: 1
-Selected directory: ./source_documents/psychology
-Creating new vectorstore
-Loading documents from source_documents
-Loading new documents: 100%|██████████████████████| 1/1 [00:01<00:00,  1.73s/it]
-Creating embeddings. May take some minutes...
-Ingestion complete! You can now run scrapalot_main.py to query your documents
-```
-
-It will create a subfolder in the `db` folder containing the local vectorstore. It Will take 20-30 seconds per document (much less if you use an Nvidia GPU), depending on the size of the document.
-You can ingest as many documents as you want, and all will be accumulated in the selected embeddings' database.
-If you want to start from an empty database, delete the subfolder inside the `db` folder, or create a new one using the scrapalot_ingest.py script.
-
-Note: during the ingest process, no data leaves your local environment. You could ingest without an internet connection, except for the first time you run the ingest script, when the embedding model
-is downloaded.
-
-## Ask questions to your documents!
-
-### Console CLI
-
-In order to ask a question, run a command like this. Mute stream is the flag to hide generation of answer in the console:
-
-```shell
-python scrapalot_main.py --mute-stream
-```
-
-When you run this script, you'll have to choose to which database you want to perform conversation.
-If you want your question returned from multiple databases, you will have to put the index numbers separated by comma.
-For example:
-
-```shell
-Existing databases in ./db folder:
-
-1. psychology
-2. medicine
- 
-Enter the index number of the database (or more of them separated by comma): 1,2
-
-Enter question (q for quit): How to be happy?
-
-Seeking for answer from: [psychology]. May take some minutes...
-```
-
-The script also supports other optional command-line arguments to modify its behavior.
-You can see a full list of these arguments by running this command in your terminal:
-
-```shell 
-python scrapalot_main.py --help
-```
-
-### Web app
-
-Scrapalot has REST API built by `fastapi` (`scrapalot_main_api_run.py`), that API has to be running if you want to run the UI (`scrapalot_main_web.py`), which is based
-on `streamlit` / `streamlit-chat`.
-
-To run the web:
-
-```shell
-streamlit run scrapalot_main_web.py
-```
-
-# How does it work?
-
-Selecting the right local models and the power of `LangChain` you can run the entire pipeline locally, without any data leaving your environment, and with reasonable performance.
-
-- `scrapalot_ingest.py` uses `LangChain` tools to parse the document and create embeddings locally using `HuggingFaceEmbeddings` (`SentenceTransformers`). It then stores the result in a local vector
-  database using `Chroma` vector store.
-- `scrapalot_main.py` uses a local LLM based on `llamacpp, gpt4all, openai` to understand questions and create answers. The context for the answers is extracted from the local vector store using a
-  similarity search to locate the right piece of context from the docs.
-
-Note: you could turn off your internet connection, and the script inference would still work. No data gets out of your local environment.
+4. Enable GPU acceleration in `.env` file by setting `GPU_IS_ENABLED` to `true`
+5. Run `scrapalot_ingest.py` and `scrapalot_main.py` as usual
+
+If the above doesn't work for you, you will have to manually build llama-cpp-python library with CMake:
+
+1. Get repo `git clone https://github.com/abetlen/llama-cpp-python.git`,
+    - switch to tag this application is using from `requirements-*.txt` file:
+    - uninstall your local llama-cpp-python: `pip3 uninstall llama-cpp-python`
+2. Open `llama-cpp-python/vendor/llama.cpp/CMakeList.txt` in text editor and add
+   `set(LLAMA_CUBLAS 1)` to the line `178` before `if (LLAMA_CUBLAS) line`.
+3. Install [CMake](https://cmake.org/download/)
+4. Go to `cd llama-cpp-python` and perform actions:
+    - perform `git submodule update --init --recursive`
+    - `mkdir build` and `cd build`
+5. Build llama-cpp-python yourself:
+    ```shell
+    cmake -G "Visual Studio 16 2019" -A x64 -D CUDAToolkit_ROOT="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8" .. 
+    ```
+6. Position CLI to this project and install llama from the folder you build, let's say `pip3 install ../llama-cpp-python/`
+
+# How does this app works?
+
+Selecting the right local models and the power of `LangChain` you can run the entire pipeline locally, without any data
+leaving your environment, and with reasonable performance.
+Note: you could turn off your internet connection, and the script inference
+would still work. No data gets out of your local environment.
 
 ### Docker
 
-1. Put your data in `models` / `source_documents` in the project root folder (Can be customized changing the corresponding value in the `docker-compose.yaml`)
+To run REST API and UI in docker `docker-compose.yml` is used. Models, and documents are mounted as volumes so you don't have to copy them
+to the container.
 
-2. If you want to do it manually, you can service by service, with docker compose
+1. Put your data in `models` / `source_documents` in the project root folder
+2. If you want to do it manually, you can run service by service, inside docker compose.
+   This is advisable because it takes some time for the REST API to initialize LLM.
 
 ```
-docker-compose up --build scrapalot-chat
+docker-compose up -d scrapalot-chat-api
+```
+
+```
+docker-compose up -d scrapalot-chat-web
 ```
 
 # System Requirements
@@ -440,42 +446,15 @@ To use this software, you must have minimum Python `3.10` or later installed. Ea
 
 If you encounter an error while building a wheel during the `pip install` process, you may need to install a C++ compiler on your computer.
 
-## Windows 10/11
+## MacOS (Intel Chip)
 
-### installation of packages
-
-Install the required packages (on MacOS):
-
-```shell
-pip3 install -r requirements_win.txt
-```
-
-To install a C++ compiler on Windows 10/11, follow these steps:
-
-1. Install Visual Studio 2022.
-2. Make sure the following components are selected:
-    * Universal Windows Platform development
-    * C++ CMake tools for Windows
-3. Download the MinGW installer from the [MinGW website](https://sourceforge.net/projects/mingw/).
-4. Run the installer and select the `gcc` component.
-
-## Mac OS
-
-### installation of packages
-
-Install the required packages (on MacOS):
-
-```shell
-pip3 install -r requirements_mac.txt
-```
-
-### Intel Chip
-
-When running a Mac with Intel hardware (not M1), you may run into `_clang: error: the clang compiler does not support '-march=native'_ during pip install`.
+When running a Mac with Intel hardware (not M1), you may run into:
+`_clang: error: the clang compiler does not support '-march=native'_ during pip install`.
 
 If so, set your `archflags` during pip install. Eg: `_ARCHFLAGS="-arch x86_64" pip3 install -r requirements_mac.txt_`
 
 # Disclaimer
 
-This is a test project to validate the feasibility of a fully private solution for question answering using LLMs and Vector embeddings. It is not production ready, and it is not meant to be used in
-production. The model selection is not optimized for performance, but for privacy; but it is possible to use different models and vector stores to improve performance.
+This is a test project to validate the feasibility of a fully private solution for question answering using LLMs and Vector embeddings.
+It is not production ready, and it is not meant to be used in production. The model selection is not optimized for performance,
+but for privacy; but it is possible to use different models and vector stores to improve performance or just run it on `GPU`.

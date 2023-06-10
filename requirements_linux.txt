@@ -1,7 +1,7 @@
 langchain==0.0.193
 gpt4all==0.3.0
 chromadb==0.3.26
-llama-cpp-python==0.1.57
+llama-cpp-python==0.1.61
 urllib3==2.0.3
 pdfminer.six==20221105
 python-dotenv==1.0.0

@@ -14,7 +14,7 @@ from langchain.document_loaders import (
 
 from scripts.user_environment import translate_src, translate_dst, translate_docs, ingest_chunk_size, os_running_environment
 
-if os_running_environment == 'macOs':
+if os_running_environment == 'mac':
     driver = "pyttsx3.drivers.nsss"
     importlib.import_module(driver)
 elif os_running_environment == 'windows':
@@ -88,7 +88,7 @@ def speak(content):
     if not translate_docs:
         engine.setProperty('voice', voices[0].id)
     else:
-        if os_running_environment == 'macOs':
+        if os_running_environment == 'mac':
             engine.setProperty('voice', voices[74].id)
         elif os_running_environment == 'windows':
             engine.setProperty('voice', voices[1].id)
