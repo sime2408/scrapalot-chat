@@ -70,7 +70,7 @@ LOADER_MAPPING = {
 }
 
 
-def load_single_document(file_path: str) -> Document:
+def load_single_document(file_path: str) -> List[Document]:
     """
     The function takes a single file and loads its data using the appropriate loader based on its extension.
     :param file_path: The path of the file to load.
@@ -81,7 +81,7 @@ def load_single_document(file_path: str) -> Document:
         try:
             loader_class, loader_args = LOADER_MAPPING[ext]
             loader = loader_class(file_path, **loader_args)
-            return loader.load()[0]
+            return loader.load()
         except Exception as e:
             raise ValueError(f"Problem with document {file_path}: \n'{e}'")
     raise ValueError(f"Unsupported file extension '{ext}'")

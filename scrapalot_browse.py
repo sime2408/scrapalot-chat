@@ -94,7 +94,7 @@ def run_program():
                 if 0 < int(user_input) <= len(files):
                     print(f"\n\033[32m[!]\033[0m Opening document. May take some minutes! \033[32m[!]\033[0m")
                     file_path = os.path.join(current_directory, files[int(user_input) - 1])
-                    document = load_single_document(file_path)
+                    document = load_single_document(file_path)[0]
 
                     # Convert document content into a single string for processing
                     doc_content = "".join(document.page_content)
