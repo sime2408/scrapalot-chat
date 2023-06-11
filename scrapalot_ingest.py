@@ -7,13 +7,96 @@ from typing import List
 
 from dotenv import set_key
 from langchain.docstore.document import Document
+from langchain.document_loaders import (
+    CSVLoader,
+    EverNoteLoader,
+    PDFMinerLoader,
+    TextLoader,
+    JSONLoader,
+    UnstructuredEmailLoader,
+    UnstructuredEPubLoader,
+    UnstructuredHTMLLoader,
+    UnstructuredMarkdownLoader,
+    UnstructuredODTLoader,
+    UnstructuredPowerPointLoader,
+    UnstructuredWordDocumentLoader,
+)
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 from tqdm import tqdm
 
-from scripts.app_environment import ingest_chunk_size, ingest_chunk_overlap, ingest_embeddings_model, ingest_persist_directory, ingest_source_directory, args, chromaDB_manager, gpu_is_enabled
-from scripts.app_utils import display_directories, load_single_document, LOADER_MAPPING
+from scripts.app_environment import (
+    ingest_chunk_size,
+    ingest_chunk_overlap,
+    ingest_embeddings_model,
+    ingest_persist_directory,
+    ingest_source_directory,
+    args,
+    chromaDB_manager,
+    gpu_is_enabled)
+from scripts.app_utils import display_directories
+
+
+# Custom document loaders
+class MyElmLoader(UnstructuredEmailLoader):
+    """Wrapper to fall back to text/plain when default does not work"""
+
+    def load(self) -> List[Document]:
+        """Wrapper adding fallback for elm without html"""
+        try:
+            try:
+                doc = UnstructuredEmailLoader.load(self)
+            except ValueError as e:
+                if 'text/html content not found in email' in str(e):
+                    # Try plain text
+                    self.unstructured_kwargs["content_source"] = "text/plain"
+                    doc = UnstructuredEmailLoader.load(self)
+                else:
+                    raise
+        except Exception as e:
+            # Add file_path to exception message
+            raise type(e)(f"{self.file_path}: {e}") from e
+
+        return doc
+
+
+# Map file extensions to document loaders and their arguments
+LOADER_MAPPING = {
+    ".csv": (CSVLoader, {}),
+    # ".docx": (Docx2txtLoader, {}),
+    ".doc": (UnstructuredWordDocumentLoader, {}),
+    ".docx": (UnstructuredWordDocumentLoader, {}),
+    ".enex": (EverNoteLoader, {}),
+    ".eml": (MyElmLoader, {}),
+    ".epub": (UnstructuredEPubLoader, {}),
+    ".html": (UnstructuredHTMLLoader, {}),
+    ".md": (UnstructuredMarkdownLoader, {}),
+    ".odt": (UnstructuredODTLoader, {}),
+    ".pdf": (PDFMinerLoader, {}),
+    ".ppt": (UnstructuredPowerPointLoader, {}),
+    ".pptx": (UnstructuredPowerPointLoader, {}),
+    ".txt": (TextLoader, {"encoding": "utf8", "autodetect_encoding": True}),
+    ".json": (JSONLoader, {"jq_schema": ".[].full_text"}),
+    # Add more mappings for other file extensions and loaders as needed
+}
+
+
+def load_single_document(file_path: str) -> List[Document]:
+    """
+    The function takes a single file and loads its data using the appropriate loader based on its extension.
+    :param file_path: The path of the file to load.
+    :return: A list of Document objects loaded from the file.
+    """
+    ext = (os.path.splitext(file_path)[-1]).lower()
+    if ext in LOADER_MAPPING:
+        try:
+            loader_class, loader_args = LOADER_MAPPING[ext]
+            loader = loader_class(file_path, **loader_args)
+            return loader.load()
+        except Exception as e:
+            raise ValueError(f"Problem with document {file_path}: \n'{e}'")
+    raise ValueError(f"Unsupported file extension '{ext}'")
 
 
 def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Document]:
@@ -245,7 +328,9 @@ if __name__ == "__main__":
             main(source_directory, persist_directory, collection_name)
         else:
             source_directory, persist_directory = prompt_user()
-            main(source_directory, persist_directory, os.path.basename(persist_directory))
+            db_name = os.path.basename(persist_directory)
+            tag_collection(db_name, db_name)
+            main(source_directory, persist_directory, db_name)
     except SystemExit:
         print("\n\033[91m\033[1m[!] \033[0mExiting program! \033[91m\033[1m[!] \033[0m")
         sys.exit(1)
