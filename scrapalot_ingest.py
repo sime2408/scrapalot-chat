@@ -245,16 +245,16 @@ if __name__ == "__main__":
 
             if args.collection:
                 collection_name = args.collection
-                tag_collection(args.ingest_dbname, args.collection)
+                # tag_collection(args.ingest_dbname, args.collection)
             else:
                 collection_name = args.ingest_dbname
-                tag_collection(args.ingest_dbname, args.ingest_dbname)
+                # tag_collection(args.ingest_dbname, args.ingest_dbname)
 
             main(source_directory, persist_directory, collection_name)
         else:
             source_directory, persist_directory = prompt_user()
             db_name = os.path.basename(persist_directory)
-            tag_collection(db_name, db_name)
+            # tag_collection(db_name, db_name)
             main(source_directory, persist_directory, db_name)
     except SystemExit:
         print("\n\033[91m\033[1m[!] \033[0mExiting program! \033[91m\033[1m[!] \033[0m")
