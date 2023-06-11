@@ -64,6 +64,9 @@ cli_column_number = int(os.environ.get("CLI_COLUMN_NUMBER", "4"))
 # API
 api_base_url = os.environ.get("API_BASE_URL", "http://127.0.0.1:8080")
 
+# TTS
+tts_speed = int(os.environ.get("TTS_SPEED", "210"))
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(

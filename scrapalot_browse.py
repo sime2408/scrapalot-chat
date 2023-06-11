@@ -1,9 +1,7 @@
-import importlib
 import math
 import os
 import textwrap
 
-import pyttsx3
 from deep_translator import GoogleTranslator
 from langchain.docstore.document import Document
 from langchain.document_loaders import (
@@ -12,30 +10,8 @@ from langchain.document_loaders import (
     PDFMinerLoader,
 )
 
-from scripts.user_environment import translate_src, translate_dst, translate_docs, ingest_chunk_size, os_running_environment
-
-if os_running_environment == 'mac':
-    driver = "pyttsx3.drivers.nsss"
-    importlib.import_module(driver)
-elif os_running_environment == 'windows':
-    driver = 'pyttsx3.drivers.sapi5'
-    importlib.import_module(driver)
-elif os_running_environment == 'linux':
-    driver = 'pyttsx3.drivers.espeak'
-    importlib.import_module(driver)
-
-engine = pyttsx3.init()
-engine.setProperty('rate', 205)
-voices = engine.getProperty('voices')  # getting details of current voice
-
-
-def print_all_voices_helper():
-    for index, voice in enumerate(voices):
-        print(f"Voice {index}: ID: {voice.id}, Name: {voice.name}, Languages: {voice.languages}, Gender: {voice.gender}, Age: {voice.age}")
-        engine.setProperty('voice', voice.id)
-
-
-print_all_voices_helper()
+from scripts.app_environment import translate_src, translate_dst, translate_docs, ingest_chunk_size
+from scripts.app_text_to_speech import speak_chunk
 
 LOADER_MAPPING = {
     ".doc": (UnstructuredWordDocumentLoader, {}),
@@ -80,23 +56,6 @@ def load_single_document(file_path: str) -> Document:
         return loader.load()[0]
 
     raise ValueError(f"Unsupported file extension '{ext}'")
-
-
-def stop_voice():
-    engine.stop()
-
-
-def speak_chunk(content):
-    if not translate_docs:
-        engine.setProperty('voice', voices[0].id)
-    else:
-        if os_running_environment == 'mac':
-            engine.setProperty('voice', voices[74].id)
-        elif os_running_environment == 'windows':
-            engine.setProperty('voice', voices[1].id)
-
-    engine.say(content)
-    engine.runAndWait()
 
 
 def run_program():

@@ -12,11 +12,11 @@ from transformers import LlamaForCausalLM
 from transformers import LlamaTokenizer
 from transformers import pipeline
 
-import scrapalot_logs
-from scripts.user_environment import model_type, openai_api_key, model_n_ctx, model_temperature, model_top_p, model_n_batch, model_use_mlock, model_n_threads, model_verbose, \
+from scripts import app_logs
+from scripts.app_environment import model_type, openai_api_key, model_n_ctx, model_temperature, model_top_p, model_n_batch, model_use_mlock, model_n_threads, model_verbose, \
     huggingface_hub_key, args, db_get_only_relevant_docs, gpt4all_backend, model_path_or_id, gpu_is_enabled
-from scripts.user_processors import print_document_chunk, print_hyperlink, process_database_question, process_query
-from scripts.user_prompt import prompt
+from scripts.app_qa_builder import print_document_chunk, print_hyperlink, process_database_question, process_query
+from scripts.app_user_prompt import prompt
 
 # Ensure TOKENIZERS_PARALLELISM is set before importing any HuggingFace module.
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
@@ -167,6 +167,6 @@ def main():
 
 if __name__ == "__main__":
     if args.log_level is not None:
-        scrapalot_logs.initialize_logging()
+        app_logs.initialize_logging()
 
     main()

@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 import glob
-import math
 import os
 import sys
-import textwrap
 from multiprocessing import Pool
 from typing import List
 
@@ -28,7 +26,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 from tqdm import tqdm
 
-from scripts.user_environment import (
+from scripts.app_environment import (
     ingest_chunk_size,
     ingest_chunk_overlap,
     ingest_embeddings_model,
@@ -36,8 +34,8 @@ from scripts.user_environment import (
     ingest_source_directory,
     args,
     chromaDB_manager,
-    gpu_is_enabled,
-)
+    gpu_is_enabled)
+from scripts.app_utils import _display_directories
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -130,19 +128,20 @@ def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Docum
     return results
 
 
-def process_documents(source_directory: str, ignored_files: List[str] = []) -> List[Document]:
+def process_documents(source_dir: str, ignored_files: List[str] = []) -> List[Document]:
     """
     Loads and processes the documents, splitting them into chunks.
+    :param source_dir: source directory
     :param ignored_files: A list of filenames to be ignored.
     :return: A list of text chunks from the loaded documents.
     """
-    print(f"Loading documents from {source_directory}")
-    documents = load_documents(source_directory, ignored_files)
+    print(f"Loading documents from {source_dir}")
+    documents = load_documents(source_dir, ignored_files)
     texts: list[Document] = []
     if not documents:
         print("No new documents to load")
         return texts
-    print(f"Loaded {len(documents)} new documents from {source_directory}")
+    print(f"Loaded {len(documents)} new documents from {source_dir}")
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=ingest_chunk_size if ingest_chunk_size else args.ingest_chunk_size,
         chunk_overlap=ingest_chunk_overlap if ingest_chunk_overlap else args.ingest_chunk_overlap
@@ -177,7 +176,7 @@ def tag_collection(database_name: str, db_collection_name: str):
     """
     client = chromaDB_manager.get_client(database_name)
     for col in client.list_collections():
-        print(col)
+        print(f"Existing collection: {col}")
 
     try:
         default_collection = client.get_collection(name='langchain')
@@ -204,36 +203,6 @@ def prompt_user():
     in the directory if it is empty. It sets the directory paths as environment variables and returns them.
     :return: The selected source directory path, the selected database directory path, and the collection name.
     """
-
-    def _display_directories():
-        """
-        Displays the list of existing directories in the ./source_documents directory.
-        :return: The list of existing directories.
-        """
-        print(f"Existing directories in ./source_documents:\n\033[0m")
-        directories = sorted((f for f in os.listdir("./source_documents") if not f.startswith(".")), key=str.lower)
-
-        # Set the desired column width and the number of columns
-        column_width = 30
-        num_columns = 4
-
-        # Calculate the number of rows needed based on the number of directories
-        num_rows = math.ceil(len(directories) / num_columns)
-
-        # Print directories in multiple columns
-        for row in range(num_rows):
-            for column in range(num_columns):
-                # Calculate the index of the directory based on the current row and column
-                index = row + column * num_rows
-
-                if index < len(directories):
-                    directory = directories[index]
-                    wrapped_directory = textwrap.shorten(directory, width=column_width - 1, placeholder="...")
-                    print(f"{index + 1:2d}. {wrapped_directory:{column_width}}", end="")
-
-            print()  # Print a new line after each row
-
-        return directories
 
     def _create_directory(directory_name):
         """

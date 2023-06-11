@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from scripts.user_environment import args
+from scripts.app_environment import args
 
 
 def initialize_logging():

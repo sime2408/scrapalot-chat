@@ -6,7 +6,7 @@ import streamlit as st
 from streamlit_chat import message
 from urllib3.connection import HTTPConnection
 
-from scripts.user_environment import api_base_url
+from scripts.app_environment import api_base_url
 
 st.set_page_config(layout="wide")
 

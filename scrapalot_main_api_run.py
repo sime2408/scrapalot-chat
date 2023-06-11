@@ -10,8 +10,8 @@ from fastapi import UploadFile, FastAPI, Depends, Form, File
 from pydantic import BaseModel
 
 from scrapalot_main import get_llm_instance
-from scripts.user_environment import translate_docs, translate_src, translate_dst, translate_q, chromaDB_manager
-from scripts.user_processors import process_database_question, process_query
+from scripts.app_environment import translate_docs, translate_src, translate_dst, translate_q, chromaDB_manager
+from scripts.app_qa_builder import process_database_question, process_query
 
 sys.path.append(str(Path(sys.argv[0]).resolve().parent.parent))
 

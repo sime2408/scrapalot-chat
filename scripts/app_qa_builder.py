@@ -12,8 +12,8 @@ from langchain.vectorstores import Chroma
 from openai.error import AuthenticationError
 
 from scrapalot_browse import speak_chunk
-from .user_environment import translate_dst, translate_src, translate_docs, translate_q, translate_a, ingest_target_source_chunks, args, openai_use, ingest_embeddings_model, chromaDB_manager, \
-    gpu_is_enabled
+from .app_environment import translate_dst, translate_src, translate_docs, translate_q, translate_a, ingest_target_source_chunks, args, openai_use, ingest_embeddings_model, gpu_is_enabled, \
+    chromaDB_manager
 
 
 def print_hyperlink(doc):
