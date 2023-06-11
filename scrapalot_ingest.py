@@ -37,9 +37,6 @@ from scripts.app_environment import (
     gpu_is_enabled)
 from scripts.app_utils import _display_directories
 
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
-
 # Custom document loaders
 class MyElmLoader(UnstructuredEmailLoader):
     """Wrapper to fall back to text/plain when default does not work"""
@@ -50,7 +47,7 @@ class MyElmLoader(UnstructuredEmailLoader):
             try:
                 doc = UnstructuredEmailLoader.load(self)
             except ValueError as e:
-                if "text/html content not found in email" in str(e):
+                if 'text/html content not found in email' in str(e):
                     # Try plain text
                     self.unstructured_kwargs["content_source"] = "text/plain"
                     doc = UnstructuredEmailLoader.load(self)
@@ -110,7 +107,9 @@ def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Docum
     """
     all_files = []
     for ext in LOADER_MAPPING:
-        all_files.extend(glob.glob(os.path.join(source_dir, f"**/*{ext}"), recursive=True))
+        all_files.extend(
+            glob.glob(os.path.join(source_dir, f"**/*{ext}"), recursive=True)
+        )
     filtered_files = [file_path for file_path in all_files if file_path not in ignored_files]
 
     with Pool(processes=min(8, os.cpu_count())) as pool:
@@ -140,7 +139,7 @@ def process_documents(source_dir: str, ignored_files: List[str] = []) -> List[Do
     texts: list[Document] = []
     if not documents:
         print("No new documents to load")
-        return texts
+        exit(0)
     print(f"Loaded {len(documents)} new documents from {source_dir}")
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=ingest_chunk_size if ingest_chunk_size else args.ingest_chunk_size,
@@ -158,8 +157,7 @@ def does_vectorstore_exist(persist_directory: str) -> bool:
     :return: True if the vectorstore exists, False otherwise.
     """
     if os.path.exists(os.path.join(persist_directory, 'index')):
-        if os.path.exists(os.path.join(persist_directory, 'chroma-collections.parquet')) and os.path.exists(
-                os.path.join(persist_directory, 'chroma-embeddings.parquet')):
+        if os.path.exists(os.path.join(persist_directory, 'chroma-collections.parquet')) and os.path.exists(os.path.join(persist_directory, 'chroma-embeddings.parquet')):
             list_index_files = glob.glob(os.path.join(persist_directory, 'index/*.bin'))
             list_index_files += glob.glob(os.path.join(persist_directory, 'index/*.pkl'))
             # At least 3 documents are needed in a working vectorstore
