@@ -136,7 +136,7 @@ async def query_documents(body: QueryBody, llm=Depends(get_llm)):
         if translate_q:
             question = GoogleTranslator(source=translate_dst, target=translate_src).translate(question)
 
-        print(f"\n\n\033[94mSeeking for answer from: [{database_name}]. May take some minutes...\033[0m")
+        print(f"\n\033[94mSeeking for answer from: [{database_name}]. May take some minutes...\033[0m")
         qa = process_database_question(database_name, llm, collection_name)
         answer, docs = process_query(qa, question, chat_history, chromadb_get_only_relevant_docs=False)
 

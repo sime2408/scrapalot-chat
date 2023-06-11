@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import os
-from concurrent.futures.thread import ThreadPoolExecutor
 from time import monotonic
 
 import torch
@@ -9,7 +8,6 @@ from langchain import HuggingFacePipeline, HuggingFaceHub, LLMChain, PromptTempl
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.llms import LlamaCpp, GPT4All, OpenAI
 from torch import cuda as torch_cuda
-from tqdm import tqdm
 from transformers import LlamaForCausalLM
 from transformers import LlamaTokenizer
 from transformers import pipeline
@@ -142,15 +140,16 @@ def main():
         if query == "q":
             break
 
-        collection_name = os.path.basename(selected_directory_list[0]) if selected_directory_list else None
+        qa_list = []
+        for i in range(len(selected_directory_list)):
+            qa_list.append(process_database_question(selected_directory_list[i], llm, selected_directory_list[i]))
 
-        with ThreadPoolExecutor() as executor:
-            qa_list = list(tqdm(executor.map(
-                process_database_question, selected_directory_list,
-                [llm] * len(selected_directory_list),
-                # we're not asking a collection here, assuming it's the same as db name
-                [collection_name] * len(selected_directory_list)
-            ), total=len(selected_directory_list)))
+        # Doesn't work very well for some reason won't send proper collection name to process_database_question?
+        # def worker(j):
+        #     return process_database_question(selected_directory_list[j], llm, selected_directory_list[j])
+        #
+        # with ThreadPoolExecutor() as executor:
+        #     qa_list = list(executor.map(worker, range(len(selected_directory_list))))
 
         for i in range(len(qa_list)):
             start_time = monotonic()
