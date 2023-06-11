@@ -1,4 +1,5 @@
 import importlib
+import logging as logger
 
 import pyttsx3
 
@@ -20,9 +21,9 @@ voices = engine.getProperty('voices')  # getting details of current voice
 
 
 def print_all_voices_helper():
-    print("On this system following voices are supported:")
+    logger.log(logger.DEBUG, "On this system following voices are supported:")
     for index, voice in enumerate(voices):
-        print(f"Voice {index}: ID: {voice.id}, Name: {voice.name}, Languages: {voice.languages}, Gender: {voice.gender}, Age: {voice.age}")
+        logger.log(logger.DEBUG, f"Voice {index}: ID: {voice.id}, Name: {voice.name}, Languages: {voice.languages}, Gender: {voice.gender}, Age: {voice.age}")
         engine.setProperty('voice', voice.id)
 
 
@@ -44,8 +45,8 @@ def supported_voices():
     """
     voice_dict = {
         'hr': {
-            'mac': voices[74].id,
-            'windows': voices[1].id,
+            'mac': voices[2].id,
+            'windows': voices[2].id,
             'linux': voices[0].id,  # Adjust voice index as per your requirement for Linux
         },
         'en': {

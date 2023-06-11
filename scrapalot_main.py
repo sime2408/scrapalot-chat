@@ -21,7 +21,11 @@ from scripts.app_user_prompt import prompt
 # Ensure TOKENIZERS_PARALLELISM is set before importing any HuggingFace module.
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 # load environment variables
-load_dotenv()
+
+try:
+    load_dotenv()
+except Exception as e:
+    print("Error loading .env file, create one from example.env:", str(e))
 
 
 def get_gpu_memory() -> int:
@@ -137,6 +141,8 @@ def main():
 
     while True:
         query = input("\nEnter question (q for quit): ")
+        if query.strip() == "":
+            continue
         if query == "q":
             break
 

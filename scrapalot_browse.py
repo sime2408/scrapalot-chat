@@ -3,22 +3,10 @@ import os
 import textwrap
 
 from deep_translator import GoogleTranslator
-from langchain.docstore.document import Document
-from langchain.document_loaders import (
-    UnstructuredEPubLoader,
-    UnstructuredWordDocumentLoader,
-    PDFMinerLoader,
-)
 
 from scripts.app_environment import translate_src, translate_dst, translate_docs, ingest_chunk_size
 from scripts.app_text_to_speech import speak_chunk
-
-LOADER_MAPPING = {
-    ".doc": (UnstructuredWordDocumentLoader, {}),
-    ".docx": (UnstructuredWordDocumentLoader, {}),
-    ".epub": (UnstructuredEPubLoader, {}),
-    ".pdf": (PDFMinerLoader, {}),
-}
+from scripts.app_utils import load_single_document
 
 
 def get_directories(directory):
@@ -46,16 +34,6 @@ def print_files_in_source_directory(files):
     print()
     for i, file in enumerate(visible_files):
         print(f"{i + 1}. {file}")
-
-
-def load_single_document(file_path: str) -> Document:
-    ext = (os.path.splitext(file_path)[-1]).lower()
-    if ext in LOADER_MAPPING:
-        loader_class, loader_args = LOADER_MAPPING[ext]
-        loader = loader_class(file_path, **loader_args)
-        return loader.load()[0]
-
-    raise ValueError(f"Unsupported file extension '{ext}'")
 
 
 def run_program():
