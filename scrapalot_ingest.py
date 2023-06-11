@@ -26,16 +26,9 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 from tqdm import tqdm
 
-from scripts.app_environment import (
-    ingest_chunk_size,
-    ingest_chunk_overlap,
-    ingest_embeddings_model,
-    ingest_persist_directory,
-    ingest_source_directory,
-    args,
-    chromaDB_manager,
-    gpu_is_enabled)
-from scripts.app_utils import _display_directories
+from scripts.app_environment import ingest_chunk_size, ingest_chunk_overlap, ingest_embeddings_model, ingest_persist_directory, ingest_source_directory, args, chromaDB_manager, gpu_is_enabled
+from scripts.app_utils import display_directories
+
 
 # Custom document loaders
 class MyElmLoader(UnstructuredEmailLoader):
@@ -127,20 +120,16 @@ def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Docum
     return results
 
 
-def process_documents(source_dir: str, ignored_files: List[str] = []) -> List[Document]:
+def process_documents(ignored_files: List[str] = []) -> List[Document]:
     """
-    Loads and processes the documents, splitting them into chunks.
-    :param source_dir: source directory
-    :param ignored_files: A list of filenames to be ignored.
-    :return: A list of text chunks from the loaded documents.
+    Load documents and split in chunks
     """
-    print(f"Loading documents from {source_dir}")
-    documents = load_documents(source_dir, ignored_files)
-    texts: list[Document] = []
+    print(f"Loading documents from {source_directory}")
+    documents = load_documents(source_directory, ignored_files)
     if not documents:
         print("No new documents to load")
         exit(0)
-    print(f"Loaded {len(documents)} new documents from {source_dir}")
+    print(f"Loaded {len(documents)} new documents from {source_directory}")
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=ingest_chunk_size if ingest_chunk_size else args.ingest_chunk_size,
         chunk_overlap=ingest_chunk_overlap if ingest_chunk_overlap else args.ingest_chunk_overlap
@@ -228,52 +217,37 @@ def prompt_user():
         user_choice = input('\nEnter your choice ("q" for quit): ').strip()
 
         if user_choice == "1":
-            directories = _display_directories()
+            directories = display_directories()
             while True:  # Keep asking until we get a valid directory number
-                existing_directory = input(
-                    "\n\033[94mEnter the number(s) of the existing directory (separated by commas for multiple selections, 'q' for quit, 'b' for back): \033[0m"
-                )
+                existing_directory = input("\n\033[94mEnter the number of the existing directory (q for quit, b for back): \033[0m")
                 if existing_directory == 'q':
                     raise SystemExit
                 elif existing_directory == 'b':
                     break
-                selected_directories = existing_directory.split(',')
-                selected_directory_paths = []
-                selected_db_paths = []
-                db_collection_names = []
-                for dir_index in selected_directories:
-                    try:
-                        selected_directory = directories[int(dir_index) - 1]
-                        selected_directory_path = f"./source_documents/{selected_directory}"
-                        selected_db_path = f"./db/{selected_directory}"
-                        db_collection_name = selected_directory
-
-                        if not os.listdir(selected_directory_path):
-                            print(f"\033[91m\033[1m[!]\033[0m Selected directory: '{selected_directory}' is empty \033[91m\033[1m[!]\033[0m")
-                            pass  # ignore
-                        else:
-                            if not os.path.exists(selected_db_path):
-                                os.makedirs(selected_db_path)
-                            set_key('.env', 'INGEST_SOURCE_DIRECTORY', selected_directory_path)
-                            set_key('.env', 'INGEST_PERSIST_DIRECTORY', selected_db_path)
-                            print(f"Selected directory: {selected_directory_path}")
-                            selected_directory_paths.append(selected_directory_path)
-                            selected_db_paths.append(selected_db_path)
-                            db_collection_names.append(db_collection_name)
-                    except (ValueError, IndexError):
-                        print("\n\033[91m\033[1m[!] \033[0mInvalid choice. Please try again.\033[91m\033[1m[!] \033[0m\n")
-                        directories = _display_directories()  # Display directories again if the input is invalid
-                if selected_directory_paths and selected_db_paths and db_collection_names:
-                    return selected_directory_paths, selected_db_paths, db_collection_names
+                try:
+                    selected_directory = directories[int(existing_directory) - 1]
+                    selected_directory_path = f"./source_documents/{selected_directory}"
+                    selected_db_path = f"./db/{selected_directory}"
+                    if not os.listdir(selected_directory_path):
+                        print(f"\033[91m\033[1m[!]\033[0m Selected directory: '{selected_directory}' is empty \033[91m\033[1m[!]\033[0m")
+                        directories = display_directories()  # Display directories again if the selected one is empty
+                    else:
+                        if not os.path.exists(selected_db_path):
+                            os.makedirs(selected_db_path)
+                        set_key('.env', 'INGEST_SOURCE_DIRECTORY', selected_directory_path)
+                        set_key('.env', 'INGEST_PERSIST_DIRECTORY', selected_db_path)
+                        print(f"Selected directory: {selected_directory_path}")
+                        return selected_directory_path, selected_db_path
+                except (ValueError, IndexError):
+                    print("\n\033[91m\033[1m[!] \033[0mInvalid choice. Please try again.\033[91m\033[1m[!] \033[0m\n")
+                    directories = display_directories()  # Display directories again if the input is invalid
         elif user_choice == "2":
             new_directory_name = input("Enter the name for the new directory: ")
             selected_directory_path, selected_db_path = _create_directory(new_directory_name)
             input("Place your source material into the new folder and press enter to continue...")
-            db_collection_name = new_directory_name
-            return selected_directory_path, selected_db_path, db_collection_name
+            return selected_directory_path, selected_db_path
         elif user_choice == "3":
-            db_collection_name = os.path.basename(ingest_persist_directory)
-            return ingest_source_directory, ingest_persist_directory, db_collection_name
+            return ingest_source_directory, ingest_persist_directory
         elif user_choice == "q":
             exit(0)
         else:
@@ -299,21 +273,15 @@ def main(source_dir: str, persist_dir: str, db_collection_name: str):
             client_settings=chromaDB_manager.get_chroma_setting(persist_dir)
         )
         collection = db.get()
-        if collection and 'metadatas' in collection:
-            texts = process_documents(source_dir, [metadata['source'] for metadata in collection['metadatas']])
-        else:
-            texts = []
+        texts = process_documents([metadata['source'] for metadata in collection['metadatas']])
         num_elements = len(texts)  # Calculate the total number of documents in texts
         index_metadata = {"elements": num_elements}  # Provide the "elements" key
-        if num_elements > 0:
-            print(f"Creating embeddings. May take some minutes...")
-            db.add_documents(texts, index_metadata=index_metadata)
-        else:
-            print(f"Nothing to embed to {persist_dir}.")
+        print(f"Creating embeddings. May take some minutes...")
+        db.add_documents(texts, index_metadata=index_metadata)
     else:
         # Create and store locally vectorstore
         print(f"Creating new vectorstore from {source_dir}")
-        texts = process_documents(source_dir, [])
+        texts = process_documents([source_dir])
         num_elements = len(texts)  # Calculate the total number of documents in texts
         index_metadata = {"elements": num_elements}  # Provide the "elements" key
         db = Chroma.from_documents(
@@ -351,16 +319,8 @@ if __name__ == "__main__":
 
             main(source_directory, persist_directory, collection_name)
         else:
-            source_directories, persist_directories, collection_names = prompt_user()
-            if source_directories == ingest_source_directory and persist_directories == ingest_persist_directory:
-                # here it's just only one database chosen
-                main(source_directories, persist_directories, collection_names)
-            else:
-                for source_directory, persist_directory, collection_name in zip(
-                        sorted(source_directories), sorted(persist_directories), sorted(collection_names)
-                ):
-                    tag_collection(os.path.basename(persist_directory), collection_name)
-                    main(source_directory, persist_directory, collection_name)
+            source_directory, persist_directory = prompt_user()
+            main(source_directory, persist_directory, os.path.basename(persist_directory))
     except SystemExit:
         print("\n\033[91m\033[1m[!] \033[0mExiting program! \033[91m\033[1m[!] \033[0m")
         sys.exit(1)

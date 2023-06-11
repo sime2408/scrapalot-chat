@@ -5,7 +5,7 @@ import textwrap
 from scripts.app_environment import cli_column_number, cli_column_width
 
 
-def _display_source_directories(folder: str) -> list[str]:
+def display_source_directories(folder: str) -> list[str]:
     """
     Displays the list of existing directories in the folder directory.
     :return: The list of existing directories.
@@ -14,12 +14,12 @@ def _display_source_directories(folder: str) -> list[str]:
     return sorted((f for f in os.listdir(f"./{folder}") if not f.startswith(".")), key=str.lower)
 
 
-def _display_directories():
+def display_directories():
     """
     This function displays the list of existing directories in the parent directory.
     :return: The list of existing directories.
     """
-    directories = _display_source_directories("source_documents")
+    directories = display_source_directories("source_documents")
 
     # Calculate the number of rows needed based on the number of directories
     num_rows = math.ceil(len(directories) / cli_column_number)

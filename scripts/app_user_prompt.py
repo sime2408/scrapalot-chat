@@ -1,6 +1,6 @@
 from dotenv import set_key
 
-from .app_utils import _display_directories
+from .app_utils import display_directories
 
 
 def prompt():
@@ -13,11 +13,11 @@ def prompt():
      - selected_db_path (str): The path of the database directory for the selected directory.
     """
 
-    directories = _display_directories()
+    directories = display_directories()
     valid_input = False
 
     while not valid_input:
-        user_input = input("\n\033[94mEnter the index number of the database (or more of them separated by comma) (q for quit): \033[0m")
+        user_input = input("\n\033[94mEnter the index number of the database (q for quit): \033[0m")
 
         # Check if the user wants to quit
         if user_input.strip().lower() == 'q':

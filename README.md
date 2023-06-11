@@ -81,8 +81,7 @@ The supported extensions are:
 - `.json`: Text file (jq_schema),
 
 First you need to ingest some data to the `db` database folder by performing vectorstore embeddings.
-Your `source_documents` will be shown in 4 columns listed so you can choose which database to ingest.
-It is possible to choose more than 1 index number by separating them by comma, for example `1,2`
+Your `source_documents` will be shown in 4 columns listed, so you can choose which database to ingest.
 
 ```shell
 python scrapalot_ingest.py

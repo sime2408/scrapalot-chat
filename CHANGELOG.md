@@ -17,7 +17,6 @@
     - added CHANGELOG file to track the changes
     - CUDA testing on Linux
     - added support for text-to-speach espeak library on linux
-    - ingest of files can now be performed in batch, meaning you can separate by comma indexes of source directories you want to ingest (only available in terminal)
 
 - **10.06.2023**
     - CUDA GPU now works on windows, updated instructions inside README.md
