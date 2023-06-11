@@ -88,34 +88,6 @@ def does_vectorstore_exist(persist_directory: str) -> bool:
     return False
 
 
-def tag_collection(database_name: str, db_collection_name: str):
-    """
-    Prompts the user to rename the default collection name in the Chroma database.
-    :param database_name: The name of the Chroma database.
-    :param db_collection_name: The desired collection name.
-    """
-    client = chromaDB_manager.get_client(database_name)
-    for col in client.list_collections():
-        print(f"Existing collection: {col}")
-
-    try:
-        default_collection = client.get_collection(name='langchain')
-        if default_collection:
-            client.delete_collection(name='langchain')
-
-        collection = client.get_collection(name=db_collection_name)
-        if collection:
-            client.get_or_create_collection(name=db_collection_name)
-    except TypeError:
-        print("TypeError occurred")
-    except ValueError as ve:
-        print(f"ValueError occurred: {ve}")
-        client.get_or_create_collection(name=db_collection_name)
-        pass
-    except Exception as e:
-        print("Some other exception occurred: ", str(e))
-
-
 def prompt_user():
     """
     Prompts the user to select an existing directory or create a new one to store source material.
@@ -245,16 +217,13 @@ if __name__ == "__main__":
 
             if args.collection:
                 collection_name = args.collection
-                # tag_collection(args.ingest_dbname, args.collection)
+                main(source_directory, persist_directory, collection_name)
             else:
                 collection_name = args.ingest_dbname
-                # tag_collection(args.ingest_dbname, args.ingest_dbname)
-
-            main(source_directory, persist_directory, collection_name)
+                main(source_directory, persist_directory, collection_name)
         else:
             source_directory, persist_directory = prompt_user()
             db_name = os.path.basename(persist_directory)
-            # tag_collection(db_name, db_name)
             main(source_directory, persist_directory, db_name)
     except SystemExit:
         print("\n\033[91m\033[1m[!] \033[0mExiting program! \033[91m\033[1m[!] \033[0m")
