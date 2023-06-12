@@ -45,7 +45,7 @@ def supported_voices():
     """
     voice_dict = {
         'hr': {
-            'mac': voices[2].id,
+            'mac': voices[74].id,
             'windows': voices[2].id,
             'linux': voices[0].id,  # Adjust voice index as per your requirement for Linux
         },

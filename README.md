@@ -13,7 +13,13 @@ You can ingest documents and ask questions without an internet connection!
 
 #### Env variables
 
-Rename `example.env` to `.env` and edit the variables appropriately.
+Copy the `example.env` template into `.env`
+
+```shell
+cp example.env .env
+```
+
+and edit the variables appropriately in the `.env` file.
 
 ```ini
 OS_RUNNING_ENVIRONMENT: Operating system your application is running on.
@@ -32,8 +38,9 @@ MODEL_TEMPERATURE: Temperature between 0.0 & 1.0. If 0 it will return exact answ
 MODEL_USE_MLOCK: If this value is set to 1, the entire model will be loaded into RAM (avoid using the disk but use more RAM), 
 if you have little RAM, set this value to 0
 MODEL_VERBOSE: Turn on or off model debugging
-MODEL_N_BATCH:  the number of tokens processed at any one time. The lower this value, the less hardware resources will be required, 
-but the query may be very slow; a high value, on the other hand, speeds things up at the cost of higher memory usage.
+MODEL_N_BATCH:  The number of tokens in the prompt that are fed into the model at a time. The lower this value, the less hardware resources will be required, 
+but the query may be very slow; a high value, on the other hand, speeds things up at the cost of higher memory usage. 
+Optimal value differs a lot depending on the model (8 works well for GPT4All, and 1024 is better for LlamaCpp)
 MODEL_N_THREADS: How much threads will be used when model process the data
 MODEL_TOP_P: The top-p value to use for sampling.
 
@@ -59,7 +66,7 @@ GPT4ALL_BACKEND: backend type of GPT4All model. Can be gptj or llama (ggml-model
 Note: because of the way `langchain` loads the `SentenceTransformers` embeddings, the first time you run the script
 it will require internet connection to download the embeddings model itself.
 
-#### Instructions for ingesting your own dataset
+#### Supported files
 
 For each set of documents, create a new sub-folders (1 level) in the `source_documents` folder and place the files inside sub-folders.
 The supported extensions are:
@@ -80,6 +87,42 @@ The supported extensions are:
 - `.txt`: Text file (UTF-8),
 - `.json`: Text file (jq_schema),
 
+#### Conda environment (recommended)
+
+In order to set your environment up to run the code here, first install all requirements.
+
+It is recommended that you create a virtual environment to install all dependencies from
+`requirements_*.txt` files, not to mix them with another Python version on your machine.
+
+- For conda environment:
+
+```shell
+conda create --name scrapalot-chat python=3.10.11 && conda activate scrapalot-chat
+```
+
+If you want to remove the conda environment, run this:
+
+```shell
+conda remove -n scrapalot-chat --all
+```
+
+If you use conda environment, and you want to parse `epub` books, you'll have to install `pypandoc` and `pandoc` inside conda environment.
+
+```shell
+conda install -c conda-forge pypandoc
+conda install -c anaconda pandoc
+```
+
+# Installation
+
+See OS Setup section on how to install dependencies for your specific Operating System.
+
+```shell
+pip3 install -r requirements_windows.txt
+```
+
+# Ingesting data to the database
+
 First you need to ingest some data to the `db` database folder by performing vectorstore embeddings.
 Your `source_documents` will be shown in 4 columns listed, so you can choose which database to ingest.
 
@@ -95,7 +138,7 @@ This will create database embeddings:
 
 ![Ingest created](img/ingest_data_separated_db.png)
 
-### QA application
+# QA application
 
 To start the main application most importantly is to download the proper model to the `models` folder and set `.env` variables:
 
@@ -163,7 +206,7 @@ which database you want to ask questions to. After which you should receive an a
 You can enter "n" to see new chunk of the document, "s" to speak the text, or "b" to go back in the folder
 structure.
 
-### Document browser
+## Document browser
 
 You have and option to browse through the documents and read them per chunk by using:
 
@@ -173,7 +216,7 @@ python scrapalot_browse.py
 
 You can also filter some documents by name, read chunks of books text, step forward pressing `"n" + Enter`, speak text pressing `"s" + Enter`.
 
-### REST API
+## REST API
 
 Scrapalot has REST API built by `fastapi` that has to be running if you want to run the UI:
 
@@ -185,7 +228,7 @@ Scrapalot supports REST API to integrate UI, you can develop your own, but we su
 API runs by default at port 8080, and it's required for streamlit UI to be started first.
 API address is manipulated by changing `API_BASE_URL` env parameter.
 
-### UI
+## User Interface
 
 UI is based on `streamlit` / `streamlit-chat`. To run the web:
 
@@ -201,33 +244,7 @@ UI supports specifying `database` and `collection` in the database where the que
 ![API](img/web_ui_asked_question.png)
 ![API](img/web_ui_question_answered.png)
 
-# Environment Setup
-
-In order to set your environment up to run the code here, first install all requirements.
-
-## Conda environment
-
-It is recommended that you create a virtual environment to install all dependencies from
-`requirements_*.txt` files, not to mix them with another Python version on your machine.
-
-- For conda environment:
-
-```shell
-conda create --name scrapalot-chat python=3.10.11 && conda activate scrapalot-chat
-```
-
-If you want to remove the conda environment, run this:
-
-```shell
-conda remove -n scrapalot-chat --all
-```
-
-If you use conda environment, and you want to parse `epub` books, you'll have to install `pypandoc` and `pandoc` inside conda environment.
-
-```shell
-conda install -c conda-forge pypandoc
-conda install -c anaconda pandoc
-```
+# OS Setup
 
 # CPU processor
 
@@ -392,14 +409,7 @@ If the above doesn't work for you, you will have to manually build llama-cpp-pyt
     ```
 6. Position CLI to this project and install llama from the folder you build, let's say `pip3 install ../llama-cpp-python/`
 
-# How does this app works?
-
-Selecting the right local models and the power of `LangChain` you can run the entire pipeline locally, without any data
-leaving your environment, and with reasonable performance.
-Note: you could turn off your internet connection, and the script inference
-would still work. No data gets out of your local environment.
-
-### Docker
+# Docker
 
 To run REST API and UI in docker `docker-compose.yml` is used. Models, and documents are mounted as volumes so you don't have to copy them
 to the container.
@@ -407,6 +417,13 @@ to the container.
 1. Put your data in `models` / `source_documents` in the project root folder
 2. If you want to do it manually, you can run service by service, inside docker compose.
    This is advisable because it takes some time for the REST API to initialize LLM.
+
+# How does this app works?
+
+Selecting the right local models and the power of `LangChain` you can run the entire pipeline locally, without any data
+leaving your environment, and with reasonable performance.
+Note: you could turn off your internet connection, and the script inference
+would still work. No data gets out of your local environment.
 
 ```
 docker-compose up -d scrapalot-chat-api

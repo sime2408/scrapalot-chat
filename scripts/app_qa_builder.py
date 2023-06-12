@@ -34,7 +34,7 @@ def print_document_chunk(doc):
         document_page = GoogleTranslator(source=translate_src, target=translate_dst).translate(document_page)
     wrapper = textwrap.TextWrapper(initial_indent='\033[37m', subsequent_indent='\033[37m', width=120)
     print(f"{wrapper.fill(document_page)}\033[0m\n")
-    print(f'\n\033[94m"n" -> next, "s" -> speak, "q" -> quit: \033[0m')
+    print(f'\033[94m"n" -> next, "s" -> speak, "q" -> quit: \033[0m')
     user_input = input()
     if user_input.lower() == 'q':
         exit(0)

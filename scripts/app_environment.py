@@ -29,7 +29,7 @@ model_use_mlock = os.environ.get("MODEL_USE_MLOCK", "true") == "true"
 model_verbose = os.environ.get("MODEL_VERBOSE", "false") == "true"
 model_n_threads = int(os.environ.get("MODEL_N_THREADS", "16"))
 model_top_p = float(os.environ.get("MODEL_TOP_P", "0.9"))
-model_n_batch = int(os.environ.get('MODEL_N_BATCH', "512"))
+model_n_batch = int(os.environ.get('MODEL_N_BATCH', "1024"))
 
 # Settings specific for LLAMA
 model_path_or_id = os.environ.get("MODEL_ID_OR_PATH")
