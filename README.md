@@ -35,11 +35,11 @@ MODEL_TYPE: supports llamacpp, gpt4all, openai, huggingface-local, huggingface-h
 MODEL_ID_OR_PATH: Path to your gpt4all or llamacpp supported LLM
 MODEL_N_CTX: Token context window. Maximum token limit for the LLM model
 MODEL_TEMPERATURE: Temperature between 0.0 & 1.0. If 0 it will return exact answers from the books
-MODEL_USE_MLOCK: If this value is set to 1, the entire model will be loaded into RAM (avoid using the disk but use more RAM), 
+MODEL_USE_MLOCK: If this value is set to 1, the entire model will be loaded into RAM (avoid using the disk but use more RAM),
 if you have little RAM, set this value to 0
 MODEL_VERBOSE: Turn on or off model debugging
-MODEL_N_BATCH:  The number of tokens in the prompt that are fed into the model at a time. The lower this value, the less hardware resources will be required, 
-but the query may be very slow; a high value, on the other hand, speeds things up at the cost of higher memory usage. 
+MODEL_N_BATCH:  The number of tokens in the prompt that are fed into the model at a time. The lower this value, the less hardware resources will be required,
+but the query may be very slow; a high value, on the other hand, speeds things up at the cost of higher memory usage.
 Optimal value differs a lot depending on the model (8 works well for GPT4All, and 1024 is better for LlamaCpp)
 MODEL_N_THREADS: How much threads will be used when model process the data
 MODEL_TOP_P: The top-p value to use for sampling.
@@ -226,7 +226,7 @@ at once when generation is finished. List of available arguments are:
 
 You can also run `--help` to see available options:
 
-```shell 
+```shell
 python scrapalot_main.py --help
 ```
 
@@ -357,8 +357,8 @@ First, you have to uninstall old torch installation and install CUDA one:
 Install a proper torch version:
 
 ```shell
-pip3 uninstall torch
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip3 uninstall pytorch
+pip3 install pytorch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
 
 Now, set environment variables and source them:
@@ -369,7 +369,7 @@ vim ~/.bashrc
 
 ```shell
 export LLAMA_CUBLAS=1
-export LLAMA_CLBLAST=1 
+export LLAMA_CLBLAST=1
 export CMAKE_ARGS=-DLLAMA_CUBLAS=on
 export FORCE_CMAKE=1
 ```
@@ -381,7 +381,8 @@ source ~/.bashrc
 You should install the latest cuda toolkit:
 
 ```shell
-conda install -c conda-forge cudatoolkitpip uninstall llama-cpp-python
+conda install pytorch torchvision cudatoolkit
+conda install -c conda-forge cudatoolkit pip uninstall llama-cpp-python
 ```
 
 if you're already in conda env you can uninstall llama-cpp-python like this:
@@ -457,7 +458,7 @@ If the above doesn't work for you, you will have to manually build llama-cpp-pyt
     - `mkdir build` and `cd build`
 5. Build llama-cpp-python yourself:
     ```shell
-    cmake -G "Visual Studio 16 2019" -A x64 -D CUDAToolkit_ROOT="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8" .. 
+    cmake -G "Visual Studio 16 2019" -A x64 -D CUDAToolkit_ROOT="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v11.8" ..
     ```
 6. Position CLI to this project and install llama from the folder you build, let's say `pip3 install ../llama-cpp-python/`
 

@@ -3,8 +3,22 @@ import os
 import pathlib
 
 import chromadb
+import torch
 from chromadb import Settings
 from dotenv import load_dotenv
+
+
+######################################################################
+# GPU
+######################################################################
+
+
+def is_cuda_available() -> bool:
+    if torch.cuda.is_available():
+        return True
+    else:
+        return False
+
 
 # Load environment variables
 load_dotenv()
@@ -50,7 +64,7 @@ huggingface_hub_key = os.environ.get("HUGGINGFACEHUB_API_TOKEN")
 gpt4all_backend = os.environ.get("GPT4ALL_BACKEND", "gptj")
 
 # Setting specific for LLAMA GPU models
-gpu_is_enabled = os.environ.get('GPU_IS_ENABLED', "false") == "true"
+gpu_is_enabled = os.environ.get('GPU_IS_ENABLED', is_cuda_available()) == "True"
 
 # Setting specific for a database
 db_get_only_relevant_docs = os.environ.get("DB_GET_ONLY_RELEVANT_DOCS", "false") == "true"
