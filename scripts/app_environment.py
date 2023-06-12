@@ -1,4 +1,5 @@
 import argparse
+import multiprocessing
 import os
 import pathlib
 
@@ -7,12 +8,27 @@ import torch
 from chromadb import Settings
 from dotenv import load_dotenv
 
+######################################################################
+# General env calculations
+######################################################################
+
+# Number of CPU cores
+n_cpu = multiprocessing.cpu_count()
+
+# Now, if you want to use, say, 80% of your CPU cores:
+cpu_model_n_threads = int(0.8 * n_cpu)
 
 ######################################################################
 # GPU
 ######################################################################
 
+# If CUDA is available, you can set a number of threads for GPU.
+# Note: setting a specific number of threads for a GPU isn't as straightforward as for a CPU.
+# For the sake of this example, let's assume you have determined that your GPU can efficiently use 'x' threads.
+gpu_model_n_threads = int(os.environ.get("GPU_MODEL_N_THREADS", "16"))
 
+
+# If you want to check if your system supports cuda:
 def is_cuda_available() -> bool:
     if torch.cuda.is_available():
         return True
@@ -46,7 +62,6 @@ model_n_ctx = os.environ.get("MODEL_N_CTX", "1000")
 model_temperature = float(os.environ.get("MODEL_TEMPERATURE", "0.4"))
 model_use_mlock = os.environ.get("MODEL_USE_MLOCK", "true") == "true"
 model_verbose = os.environ.get("MODEL_VERBOSE", "false") == "true"
-model_n_threads = int(os.environ.get("MODEL_N_THREADS", "16"))
 model_top_p = float(os.environ.get("MODEL_TOP_P", "0.9"))
 model_n_batch = int(os.environ.get('MODEL_N_BATCH', "1024"))
 

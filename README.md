@@ -41,7 +41,6 @@ MODEL_VERBOSE: Turn on or off model debugging
 MODEL_N_BATCH:  The number of tokens in the prompt that are fed into the model at a time. The lower this value, the less hardware resources will be required,
 but the query may be very slow; a high value, on the other hand, speeds things up at the cost of higher memory usage.
 Optimal value differs a lot depending on the model (8 works well for GPT4All, and 1024 is better for LlamaCpp)
-MODEL_N_THREADS: How much threads will be used when model process the data
 MODEL_TOP_P: The top-p value to use for sampling.
 
 TRANSLATE_QUESTION: Whether or not turn on translation of questionto english. Based on GoogleTranslate HTTP calls.
@@ -57,6 +56,7 @@ DB_GET_ONLY_RELEVANT_DOCS: If this is set to `true` only documents will be retur
 OPENAI_USE: Whether to use this model or not, if yes, different embeddings should be used
 
 GPU_IS_ENABLED: Whether or not your GPU environment is enabled.
+GPU_MODEL_N_THREADS: How much threads will be used when model process the data on GPU
 
 OPENAI_API_KEY: OpenAI key for http calls to OpenAI GPT-4 API
 HUGGINGFACEHUB_API_TOKEN: Token to connect to huggingface and download the models

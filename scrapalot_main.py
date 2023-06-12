@@ -13,8 +13,8 @@ from transformers import LlamaTokenizer
 from transformers import pipeline
 
 from scripts import app_logs
-from scripts.app_environment import model_type, openai_api_key, model_n_ctx, model_temperature, model_top_p, model_n_batch, model_use_mlock, model_n_threads, model_verbose, \
-    huggingface_hub_key, args, db_get_only_relevant_docs, gpt4all_backend, model_path_or_id, gpu_is_enabled
+from scripts.app_environment import model_type, openai_api_key, model_n_ctx, model_temperature, model_top_p, model_n_batch, model_use_mlock, model_verbose, \
+    huggingface_hub_key, args, db_get_only_relevant_docs, gpt4all_backend, model_path_or_id, gpu_is_enabled, cpu_model_n_threads, gpu_model_n_threads
 from scripts.app_qa_builder import print_document_chunk, print_hyperlink, process_database_question, process_query
 from scripts.app_user_prompt import prompt
 
@@ -38,7 +38,11 @@ def get_gpu_memory() -> int:
 # noinspection PyPep8Naming
 def calculate_layer_count() -> None | int | float:
     """
-    Calculates the number of layers that can be used on the GPU.
+    How many layers of a neural network model you can fit into the GPU memory,
+    rather than determining the number of threads.
+    The layer size is specified as a constant (120.6 MB), and the available GPU memory is divided by this to determine the maximum number of layers that can be fit onto the GPU.
+    Some additional memory (the size of 6 layers) is reserved for other uses.
+    The maximum layer count is capped at 32.
     """
     if not gpu_is_enabled:
         return None
@@ -66,7 +70,7 @@ def get_llm_instance():
             backend=gpt4all_backend,
             callbacks=callbacks,
             use_mlock=model_use_mlock,
-            n_threads=model_n_threads,
+            n_threads=gpu_is_enabled if gpu_model_n_threads else cpu_model_n_threads,
             n_predict=1000,
             n_batch=model_n_batch,
             top_p=model_top_p,
@@ -82,7 +86,7 @@ def get_llm_instance():
             top_p=model_top_p,
             n_batch=model_n_batch,
             use_mlock=model_use_mlock,
-            n_threads=model_n_threads,
+            n_threads=gpu_is_enabled if gpu_model_n_threads else cpu_model_n_threads,
             verbose=model_verbose,
             n_gpu_layers=gpu_is_enabled if calculate_layer_count() else None,
             callbacks=callbacks,
