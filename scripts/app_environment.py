@@ -10,6 +10,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 os_running_environment = os.environ.get('OS_RUNNING_ENVIRONMENT', "windows")
+# currently only supporting "cpu" and "cuda"
+os_device_types = [
+    "cpu", "cuda", "ipu", "xpu", "mkldnn", "opengl", "opencl", "ideep", "hip",
+    "ve", "fpga", "ort", "xla", "lazy", "vulkan", "mps", "meta", "hpu", "mtia",
+]
 
 # Define the folder for storing database
 ingest_persist_directory = os.environ.get('INGEST_PERSIST_DIRECTORY', 'db')

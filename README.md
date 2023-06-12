@@ -320,11 +320,38 @@ by setting these flags: `export LLAMA_CUBLAS=1`
 pip3 install -r requirements_linux.txt
 ```
 
-If you want TEXT-TO-SPEECH support you must install:
+If you want TEXT-TO-SPEECH support, you must install:
 
 ```shell
 sudo apt install espeak
 ```
+
+### Installation with OpenBLAS / cuBLAS / CLBlast
+
+lama.cpp supports multiple BLAS backends for faster processing. Use the FORCE_CMAKE=1 environment variable to force the use of cmake and install the pip package for the desired BLAS backend (source).
+
+Example installation with cuBLAS backend:
+
+```shell
+!CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install llama-cpp-python
+```
+
+**IMPORTANT**: If you have already installed a cpu only version of the package, you need to reinstall it from scratch: condiser the following command:
+
+```shell
+!CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python
+```
+
+If the installation with BLAS backend was correct, you will see a `BLAS = 1` indicator in model properties.
+
+Two of the most important parameters for use with GPU are:
+
+- `n_gpu_layers` - determines how many layers of the model are offloaded to your GPU.
+- `n_batch` - how many tokens are processed in parallel.
+
+Setting these parameters correctly will dramatically improve the evaluation speed (see wrapper code for more details).
+
+### Alternatives
 
 First, you have to uninstall old torch installation and install CUDA one:
 Install a proper torch version:
@@ -350,11 +377,6 @@ export FORCE_CMAKE=1
 ```shell
 source ~/.bashrc
 ```
-
-### LLAMA
-
-llama.cpp doesn't work on windows with GPU, only with CPU, so you should try with a linux distro
-Installing torch with CUDA, will only speed up the vector search, not the writing by llama.cpp.
 
 You should install the latest cuda toolkit:
 

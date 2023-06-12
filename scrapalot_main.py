@@ -84,7 +84,7 @@ def get_llm_instance():
             use_mlock=model_use_mlock,
             n_threads=model_n_threads,
             verbose=model_verbose,
-            n_gpu_layers=calculate_layer_count(),
+            n_gpu_layers=gpu_is_enabled if calculate_layer_count() else None,
             callbacks=callbacks,
         )
     elif model_type == "huggingface-local":
