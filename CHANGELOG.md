@@ -26,9 +26,10 @@
     - Upgrade of langchain, gpt4all, llama-cpp-python
     - Increased MODEL_N_BATCH from 512 to default 1024, better works for LLAMA, 8 works for GPT4All
     - added support to set the speed of text-to-speach via TTS_SPEED env variable, moved tts code to a separate py file
-    - removed images from readme, because of constant changes of features
+    - speed up ingestion of PDF files by using PyMuPDF instead of pdfminer.six
     - utilization of code functions now goes to app_utils.py
     - improved exception handling
     - tagging collections before storing to the ChromaDB was not necessary, removed that code
     - support for ingestion to multiple database removed due to race condition multithreading
+    - removed images from readme, because of constant changes of features
     - Improved README.md

@@ -6,7 +6,6 @@ from typing import List
 from langchain.document_loaders import (
     CSVLoader,
     EverNoteLoader,
-    PDFMinerLoader,
     TextLoader,
     JSONLoader,
     UnstructuredEPubLoader,
@@ -15,7 +14,7 @@ from langchain.document_loaders import (
     UnstructuredODTLoader,
     UnstructuredPowerPointLoader,
     UnstructuredWordDocumentLoader,
-    UnstructuredEmailLoader,
+    UnstructuredEmailLoader, PyMuPDFLoader,
 )
 from langchain.schema import Document
 
@@ -61,7 +60,7 @@ LOADER_MAPPING = {
     ".html": (UnstructuredHTMLLoader, {}),
     ".md": (UnstructuredMarkdownLoader, {}),
     ".odt": (UnstructuredODTLoader, {}),
-    ".pdf": (PDFMinerLoader, {}),
+    ".pdf": (PyMuPDFLoader, {}),
     ".ppt": (UnstructuredPowerPointLoader, {}),
     ".pptx": (UnstructuredPowerPointLoader, {}),
     ".txt": (TextLoader, {"encoding": "utf8", "autodetect_encoding": True}),

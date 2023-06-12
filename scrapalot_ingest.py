@@ -45,8 +45,8 @@ def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Docum
                 if isinstance(docs, dict):
                     print(" - " + docs['file'] + ": error: " + str(docs['exception']))
                     continue
-                for d in docs:
-                    print(f"\n\033[32m\033[2m\033[38;2;0;128;0m{d.metadata.get('source', '')} \033[0m")
+
+                print(f"\n\033[32m\033[2m\033[38;2;0;128;0m{docs[0].metadata.get('source', '')} \033[0m")
                 results.extend(docs)
                 pbar.update()
 
