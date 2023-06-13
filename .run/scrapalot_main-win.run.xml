@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="scrapalot_main.py --mute-stream" type="PythonConfigurationType" factoryName="Python">
+  <configuration default="false" name="scrapalot_main-win" type="PythonConfigurationType" factoryName="Python">
     <module name="scrapalot-chat" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
