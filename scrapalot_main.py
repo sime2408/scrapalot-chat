@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import logging
 import os
 from time import monotonic
 
@@ -25,7 +26,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "true"
 try:
     load_dotenv()
 except Exception as e:
-    print("Error loading .env file, create one from example.env:", str(e))
+    logging.error("Error loading .env file, create one from example.env:", str(e))
 
 
 def get_gpu_memory() -> int:
@@ -56,13 +57,13 @@ def calculate_layer_count() -> None | int | float:
 
 
 def get_llm_instance():
-    print(f"Initializing model...")
+    logging.debug(f"Initializing model...")
 
     callbacks = [] if args.mute_stream else [StreamingStdOutCallbackHandler()]
 
     if model_type == "gpt4all":
         if gpu_is_enabled:
-            print("GPU is enabled, but GPT4All does not support GPU acceleration. Please use LlamaCpp instead.")
+            logging.warn("GPU is enabled, but GPT4All does not support GPU acceleration. Please use LlamaCpp instead.")
             exit(1)
         return GPT4All(
             model=model_path_or_id,
@@ -128,14 +129,14 @@ def get_llm_instance():
         assert openai_api_key is not None, "Set ENV OPENAI_API_KEY, Get one here: https://platform.openai.com/account/api-keys"
         return OpenAI(openai_api_key=openai_api_key, callbacks=callbacks)
     else:
-        print(f"Model {model_type} not supported!")
+        logging.error(f"Model {model_type} not supported!")
         exit()
 
 
 def main():
     llm = get_llm_instance()
     if llm is None:
-        print("Could not initialize LLM instance.")
+        logging.error("Could not initialize LLM instance.")
         return
 
     selected_directory_list = prompt()
@@ -176,7 +177,6 @@ def main():
 
 
 if __name__ == "__main__":
-    if args.log_level is not None:
-        app_logs.initialize_logging()
+    app_logs.initialize_logging()
 
     main()

@@ -4,12 +4,18 @@ from typing import List
 import requests
 import streamlit as st
 from streamlit_chat import message
+from streamlit_option_menu import option_menu
 from urllib3.connection import HTTPConnection
 
 from scripts.app_environment import api_base_url
 
 st.set_page_config(layout="wide")
 
+# --- GENERAL SETTINGS ---
+PAGE_TITLE: str = "AI Talks"
+PAGE_ICON: str = "🤖"
+LANG_EN: str = "En"
+LANG_HR: str = "Hr"
 # Constants
 ACCEPTABLE_FILE_TYPES = ["pdf", "epub", "docx"]
 
@@ -27,6 +33,9 @@ def initialize_state():
     if 'selected_collection' not in st.session_state:
         st.session_state['selected_collection'] = ''
 
+    if 'locale' not in st.session_state:
+        st.session_state['locale'] = 'en'
+
 
 def get_database_names_and_collections():
     endpoint = f"{api_base_url}/databases"
@@ -39,6 +48,9 @@ def get_database_names_and_collections():
         st.error("Failed to get database names.")
         st.write(response.text)
         return {}
+
+
+databases = get_database_names_and_collections()
 
 
 def query_documents(question: str, database_name: str, collection_name: str):
@@ -67,23 +79,26 @@ def handle_file_upload():
         type=ACCEPTABLE_FILE_TYPES
     )
 
-    database_name = st.text_input("Database where to upload the document", value="", label_visibility="visible")
+    database_names = list(databases.keys())
+    col1, col2 = st.columns(2)
+
+    selected_database = col1.selectbox("Database destination", database_names)
+    selected_collection = col2.text_input("Collection destination", value="", label_visibility="visible")
 
     if st.button("Submit"):
-        upload_documents(uploaded_files, database_name)
+        upload_documents(uploaded_files, selected_database, selected_collection)
 
 
 def handle_database_and_collection_selection():
-    result = get_database_names_and_collections()
-    database_names = list(result.keys())
+    database_names = list(databases.keys())
 
     col1, col2 = st.columns(2)
-    st.session_state['selected_database'] = col1.selectbox("Select a database", database_names)
+    st.session_state['selected_database'] = col1.selectbox("Database", database_names)
 
     # Make sure that a database is selected
     if st.session_state['selected_database']:
-        collections = result.get(st.session_state['selected_database'], [])
-        st.session_state['selected_collection'] = col2.selectbox("Select a collection", collections)
+        collections = databases.get(st.session_state['selected_database'], [])
+        st.session_state['selected_collection'] = col2.selectbox("Collection", collections)
 
 
 def handle_user_query():
@@ -135,11 +150,11 @@ def handle_user_query_processing(user_input):
 
 
 # noinspection PyUnresolvedReferences
-def upload_documents(files: List[st.runtime.uploaded_file_manager.UploadedFile], database_name: str):
+def upload_documents(files: List[st.runtime.uploaded_file_manager.UploadedFile], database_name: str, collection_name: str):
     with st.spinner("Processing..."):
         endpoint = f"{api_base_url}/upload"
         files_data = [("files", file) for file in files]
-        data = {"database_name": database_name}
+        data = {"database_name": database_name, "collection_name": collection_name}
 
         response = requests.post(endpoint, files=files_data, data=data)
         if response.status_code == 200:
@@ -151,7 +166,7 @@ def upload_documents(files: List[st.runtime.uploaded_file_manager.UploadedFile],
 
 def set_keepalive_options(http_conn):
     http_conn.default_socket_options = (
-            http_conn.default_socket_options + [
+        http_conn.default_socket_options + [
         (socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
     ])
 
@@ -217,4 +232,20 @@ def main():
 
 
 if __name__ == "__main__":
+    selected_lang = option_menu(
+        menu_title=None,
+        options=[LANG_EN, LANG_HR, ],
+        icons=["globe2", "translate"],
+        menu_icon="cast",
+        default_index=0,
+        orientation="horizontal",
+    )
+    match selected_lang:
+        case "En":
+            st.session_state.locale = 'en'
+        case "Hr":
+            st.session_state.locale = 'hr'
+        case _:
+            st.session_state.locale = 'en'
+    st.markdown(f"<h1 style='text-align: center;'>{st.session_state.locale.title}</h1>", unsafe_allow_html=True)
     main()

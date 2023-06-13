@@ -3,7 +3,7 @@ import glob
 import os
 import sys
 from multiprocessing import Pool
-from typing import List
+from typing import List, Optional
 
 from dotenv import set_key
 from langchain.docstore.document import Document
@@ -159,7 +159,7 @@ def prompt_user():
             print("\n\033[91m\033[1m[!] \033[0mInvalid choice. Please try again.\033[91m\033[1m[!] \033[0m\n")
 
 
-def main(source_dir: str, persist_dir: str, db_collection_name: str):
+def main(source_dir: str, persist_dir: str, db_collection_name: str, sub_collection_name: Optional[str] = None):
     # Create embeddings
     embeddings_kwargs = {'device': 'cuda'} if gpu_is_enabled else {}
     embeddings = HuggingFaceEmbeddings(
@@ -216,11 +216,12 @@ if __name__ == "__main__":
                 os.makedirs(persist_directory)
 
             if args.collection:
-                collection_name = args.collection
-                main(source_directory, persist_directory, collection_name)
+                sub_collection_name = args.collection
+                db_collection_name = args.ingest_dbname
+                main(source_directory, persist_directory, db_collection_name, sub_collection_name)
             else:
-                collection_name = args.ingest_dbname
-                main(source_directory, persist_directory, collection_name)
+                db_collection_name = args.ingest_dbname
+                main(source_directory, persist_directory, db_collection_name)
         else:
             source_directory, persist_directory = prompt_user()
             db_name = os.path.basename(persist_directory)

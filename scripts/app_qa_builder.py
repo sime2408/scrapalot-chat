@@ -58,11 +58,11 @@ def process_database_question(database_name, llm, collection_name: Optional[str]
 
     retriever = db.as_retriever(search_kwargs={"k": ingest_target_source_chunks if ingest_target_source_chunks else args.ingest_target_source_chunks})
 
-    template = """You are a an AI assistant providing helpful advice. You are given the following extracted parts of a long document and a question. 
-    Provide a conversational answer based on the context provided. If you can't find the answer in the context below, just say 
-    "Hmm, I'm not sure." Don't try to make up an answer. If the question is not related to the context, politely respond 
+    template = """You are a an AI assistant providing helpful advice. You are given the following extracted parts of a long document and a question.
+    Provide a conversational answer based on the context provided. If you can't find the answer in the context below, just say
+    "Hmm, I'm not sure." Don't try to make up an answer. If the question is not related to the context, politely respond
     that you are tuned to only answer questions that are related to the context.
-    
+
     Question: {question}
     =========
     {context}

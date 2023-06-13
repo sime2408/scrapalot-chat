@@ -1,3 +1,4 @@
+import logging
 import math
 import os
 import platform
@@ -29,8 +30,8 @@ def print_platform_version():
     (it can be more specific like 'linux2' or 'linux3', depending on the Linux version you're running).
     The platform.machine() returns the machine type, like 'x86_64' or 'amd64' for an Intel x64 machine, and 'arm64' for an ARM64 machine.
     """
-    print("sys_platform:", sys.platform)
-    print("platform_machine:", platform.machine())
+    logging.debug("sys_platform:", sys.platform)
+    logging.debug("platform_machine:", platform.machine())
 
 
 ######################################################################

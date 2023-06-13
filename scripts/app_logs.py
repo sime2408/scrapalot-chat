@@ -14,4 +14,4 @@ def initialize_logging():
     file_handler = logging.FileHandler(filename=log_file)
     stdout_handler = logging.StreamHandler(sys.stdout)
     handlers = [file_handler, stdout_handler]
-    logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', handlers=handlers, level=args.log_level, force=True)
+    logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', handlers=handlers, level=args.log_level if args.log_level else "INFO", force=True)

@@ -81,9 +81,9 @@ def run_ingest(database_name: str, collection_name: Optional[str] = None):
 
 @app.post("/upload")
 async def upload_documents(
-        database_name: str = Form(...),
-        files: List[UploadFile] = File(...),
-        collection_name: Optional[str] = None):
+    database_name: str = Form(...),
+    files: List[UploadFile] = File(...),
+    collection_name: Optional[str] = None):
     saved_files = []
     source_documents = './source_documents'
     try:
