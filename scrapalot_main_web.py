@@ -1,3 +1,4 @@
+import os
 import socket
 from typing import List
 
@@ -11,12 +12,20 @@ from scripts.app_environment import api_base_url
 
 st.set_page_config(layout="wide")
 
-# --- GENERAL SETTINGS ---
-PAGE_TITLE: str = "AI Talks"
+# --- translation settings ---
 PAGE_ICON: str = "🤖"
-LANG_EN: str = "En"
-LANG_HR: str = "Hr"
-# Constants
+LANG_EN: str = "en"
+LANG_DE: str = "de"
+LANG_ES: str = "es"
+LANG_FR: str = "fr"
+LANG_IT: str = "it"
+LANG_HR: str = "hr"
+
+translations = [
+    LANG_EN, LANG_DE, LANG_ES, LANG_FR, LANG_HR, LANG_IT, LANG_HR
+]
+
+# --- upload settings ---
 ACCEPTABLE_FILE_TYPES = ["pdf", "epub", "docx"]
 
 
@@ -35,6 +44,32 @@ def initialize_state():
 
     if 'locale' not in st.session_state:
         st.session_state['locale'] = 'en'
+
+
+def set_translation(locale):
+    payload = {"locale": locale}  # Send locale directly
+    endpoint = f"{api_base_url}/set-translation"
+    response = requests.post(endpoint, json=payload)
+    if response.status_code == 200:
+        st.session_state['locale'] = locale
+        pass
+    else:
+        # Handle error here
+        pass
+
+
+def setup_translation():
+    selected_lang = option_menu(
+        menu_title=None,
+        options=translations,
+        icons=["globe2", "translate", "translate", "translate", "translate", "translate", "translate"],
+        menu_icon="cast",
+        default_index=translations.index(os.environ.get('TRANSLATE_DST_LANG')),
+        orientation="horizontal",
+    )
+
+    set_translation(selected_lang)
+    st.markdown(f"<h1 style='text-align: center;'>{st.session_state.locale.title}</h1>", unsafe_allow_html=True)
 
 
 def get_database_names_and_collections():
@@ -56,7 +91,12 @@ databases = get_database_names_and_collections()
 def query_documents(question: str, database_name: str, collection_name: str):
     with st.spinner("Processing..."):
         endpoint = f"{api_base_url}/query"
-        data = {"question": question, "database_name": database_name, "collection_name": collection_name}
+        data = {
+            "question": question,
+            "database_name": database_name,
+            "collection_name": collection_name,
+            "locale": st.session_state['locale']
+        }
 
         # Modify socket options for the HTTPConnection class
         set_keepalive_options(HTTPConnection)
@@ -198,6 +238,7 @@ def redraw_conversation():
 
 def main():
     initialize_state()
+    setup_translation()
     handle_file_upload()
     st.divider()
     # Query section
@@ -232,20 +273,4 @@ def main():
 
 
 if __name__ == "__main__":
-    selected_lang = option_menu(
-        menu_title=None,
-        options=[LANG_EN, LANG_HR, ],
-        icons=["globe2", "translate"],
-        menu_icon="cast",
-        default_index=0,
-        orientation="horizontal",
-    )
-    match selected_lang:
-        case "En":
-            st.session_state.locale = 'en'
-        case "Hr":
-            st.session_state.locale = 'hr'
-        case _:
-            st.session_state.locale = 'en'
-    st.markdown(f"<h1 style='text-align: center;'>{st.session_state.locale.title}</h1>", unsafe_allow_html=True)
     main()

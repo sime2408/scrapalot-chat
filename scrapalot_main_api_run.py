@@ -5,12 +5,12 @@ from pathlib import Path
 from typing import List, Optional
 
 from deep_translator import GoogleTranslator
-from dotenv import load_dotenv
+from dotenv import load_dotenv, set_key
 from fastapi import UploadFile, FastAPI, Depends, Form, File
 from pydantic import BaseModel
 
 from scrapalot_main import get_llm_instance
-from scripts.app_environment import translate_docs, translate_src, translate_dst, translate_q, chromaDB_manager
+from scripts.app_environment import translate_docs, translate_src, translate_q, chromaDB_manager
 from scripts.app_qa_builder import process_database_question, process_query
 
 sys.path.append(str(Path(sys.argv[0]).resolve().parent.parent))
@@ -37,6 +37,11 @@ class QueryBody(BaseModel):
     database_name: str
     collection_name: str
     question: str
+    locale: str
+
+
+class TranslationBody(BaseModel):
+    locale: str
 
 
 class LLM:
@@ -77,6 +82,15 @@ def run_ingest(database_name: str, collection_name: Optional[str] = None):
     if database_name and collection_name:
         subprocess.run(["python", "scrapalot_ingest.py",
                         "--ingest-dbname", database_name, "--collection", collection_name], check=True)
+
+
+@app.post("/set-translation")
+async def set_translation(body: TranslationBody):
+    locale = body.locale
+    set_key('.env', 'TRANSLATE_DST_LANG', locale)
+    set_key('.env', 'TRANSLATE_QUESTION', 'true')
+    set_key('.env', 'TRANSLATE_ANSWER', 'true')
+    set_key('.env', 'TRANSLATE_DOCS', 'true')
 
 
 @app.post("/upload")
@@ -132,9 +146,11 @@ async def query_documents(body: QueryBody, llm=Depends(get_llm)):
     database_name = body.database_name
     collection_name = body.collection_name
     question = body.question
+    locale = body.locale
+
     try:
         if translate_q:
-            question = GoogleTranslator(source=translate_dst, target=translate_src).translate(question)
+            question = GoogleTranslator(source=locale, target=translate_src).translate(question)
 
         print(f"\n\033[94mSeeking for answer from: [{database_name}]. May take some minutes...\033[0m")
         qa = process_database_question(database_name, llm, collection_name)
@@ -144,7 +160,7 @@ async def query_documents(body: QueryBody, llm=Depends(get_llm)):
         for doc in docs:
             document_page = doc.page_content.replace('\n', ' ')
             if translate_docs:
-                document_page = GoogleTranslator(source=translate_src, target=translate_dst).translate(document_page)
+                document_page = GoogleTranslator(source=translate_src, target=locale).translate(document_page)
 
             source_documents.append({
                 'content': document_page,
