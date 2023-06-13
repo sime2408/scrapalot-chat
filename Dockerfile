@@ -18,10 +18,10 @@ WORKDIR /home/scrapalot/scrapalot-chat
 
 # Copy required files
 COPY scripts ./scripts
-COPY ["requirements_linux.txt", "scrapalot_ingest.py", "scrapalot_main.py", "scrapalot_main_api_run.py", "scrapalot_main_web.py", "./"]
+COPY ["requirements.txt", "scrapalot_ingest.py", "scrapalot_main.py", "scrapalot_main_api_run.py", "scrapalot_main_web.py", "./"]
 
 # Install dependencies
-RUN pip3 install -r requirements_linux
+RUN pip3 install -r requirements.txt
 
 # Expose port
 EXPOSE 8080 8501

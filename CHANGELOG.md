@@ -7,7 +7,7 @@
       supported in the terminal.
     - GPU-enabled flags to turn it on or off
     - added some images to the README.md on how the app works
-    - added separate requirements_linux.txt, and requirements_windows.txt with package differences for each OS,
+    - added separate requirements.txt logic using sys_platform with package differences for each OS,
     - fixes in ingest file to skip unparsable files and removed default countdown in the terminal when the prompt is waiting for user input
     - more descriptive messages in the command line
     - translation of answers, and source chunks from books are disabled by default because they contact Google Translate over the network, and not all languages are supported for now, the same states

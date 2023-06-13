@@ -92,7 +92,7 @@ The supported extensions are:
 In order to set your environment up to run the code here, first install all requirements.
 
 It is recommended that you create a virtual environment to install all dependencies from
-`requirements_*.txt` files, not to mix them with another Python version on your machine.
+`requirements.txt` file, not to mix them with another Python version on your machine.
 
 - For conda environment:
 
@@ -118,7 +118,7 @@ conda install -c anaconda pandoc
 See OS Setup section on how to install dependencies for your specific Operating System.
 
 ```shell
-pip3 install -r requirements_windows.txt
+pip3 install -r requirements.txt
 ```
 
 # Ingesting data to the database
@@ -286,7 +286,7 @@ GPU acceleration is available on `NVIDIA` graphic cards and can speed up generat
 Set `OS_RUNNING_ENVIRONMENT=linux` inside `.env` file
 
 ```shell
-pip3 install -r requirements_linux.txt
+pip3 install -r requirements.txt
 ```
 
 ## CPU (Windows 10/11):
@@ -294,7 +294,7 @@ pip3 install -r requirements_linux.txt
 Set `OS_RUNNING_ENVIRONMENT=windows` inside `.env` file
 
 ```shell
-pip3 install -r requirements_windows.txt
+pip3 install -r requirements.txt
 ```
 
 ## CPU (MacOs):
@@ -302,7 +302,7 @@ pip3 install -r requirements_windows.txt
 Set `OS_RUNNING_ENVIRONMENT=mac` inside `.env` file
 
 ```shell
-pip3 install -r requirements_mac.txt
+pip3 install -r requirements.txt
 ```
 
 # GPU acceleration
@@ -317,7 +317,7 @@ If you have an Nvidia GPU, you can speed things up by installing the `llama-cpp-
 by setting these flags: `export LLAMA_CUBLAS=1`
 
 ```shell
-pip3 install -r requirements_linux.txt
+pip3 install -r requirements.txt
 ```
 
 If you want TEXT-TO-SPEECH support, you must install:
@@ -415,7 +415,7 @@ MODEL_ID_OR_PATH=models/ggml-vic13b-q5_1.bin
 Set `OS_RUNNING_ENVIRONMENT=windows` inside `.env` file
 
 ```shell
-pip3 install -r requirements_windows.txt
+pip3 install -r requirements.txt
 ```
 
 Install Visual Studio 2019 - 2022 Code C++ compiler on Windows 10/11:
@@ -520,7 +520,7 @@ If you encounter an error while building a wheel during the `pip install` proces
 When running a Mac with Intel hardware (not M1), you may run into:
 `_clang: error: the clang compiler does not support '-march=native'_ during pip install`.
 
-If so, set your `archflags` during pip install. Eg: `_ARCHFLAGS="-arch x86_64" pip3 install -r requirements_mac.txt_`
+If so, set your `archflags` during pip install. Eg: `_ARCHFLAGS="-arch x86_64" pip3 install -r requirements.txt_`
 
 # Disclaimer
 

@@ -1,5 +1,7 @@
 import math
 import os
+import platform
+import sys
 import textwrap
 from typing import List
 
@@ -19,6 +21,16 @@ from langchain.document_loaders import (
 from langchain.schema import Document
 
 from scripts.app_environment import cli_column_number, cli_column_width
+
+
+def print_platform_version():
+    """
+    The sys.platform for macOS is 'darwin', for Windows it's 'win32', and for Linux it's 'linux'
+    (it can be more specific like 'linux2' or 'linux3', depending on the Linux version you're running).
+    The platform.machine() returns the machine type, like 'x86_64' or 'amd64' for an Intel x64 machine, and 'arm64' for an ARM64 machine.
+    """
+    print("sys_platform:", sys.platform)
+    print("platform_machine:", platform.machine())
 
 
 ######################################################################

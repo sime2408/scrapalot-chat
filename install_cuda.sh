@@ -12,7 +12,7 @@ then
 else
   conda create -y -n "scrapalot-chat"
   conda activate /usr/local/anaconda3/envs/scrapalot-chat
-  pip3 install -r requirements_windows.txt
+  pip3 install -r requirements.txt
 fi
 
 echo "Done! Active envs:"
@@ -25,4 +25,4 @@ conda info --envs
 #    python3 -m scrapalot-chat scrapalot-chat
 #fi
 #source scrapalot-chat/bin/activate
-#pip install -r requirements_windows.txt
+#pip install -r requirements.txt
