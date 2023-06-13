@@ -22,7 +22,7 @@ bitsandbytes==0.39.0
 safetensors==0.3.1
 torch==2.0.1
 pyttsx3==2.90.0
-PyObjC==9.2; sys_platform == 'darwin' and platform_machine == 'x86_64'
+PyObjC==8.5; sys_platform == 'darwin' and platform_machine == 'x86_64'
 fastapi==0.96.0
 uvicorn==0.22.0
 gunicorn==20.1.0
