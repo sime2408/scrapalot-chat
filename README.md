@@ -272,6 +272,9 @@ UI supports specifying `database` and `collection` in the database where the que
 |--------------------------------------------------------------------------------|
 
 ![API](img/web_ui_asked_question.png)
+
+And the answer section:
+
 ![API](img/web_ui_question_answered.png)
 
 # OS Setup
