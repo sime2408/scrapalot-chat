@@ -1,7 +1,13 @@
 # Scrapalot Chat
 
-Ask questions about your documents without an internet connection, using the power of LLMs. 100% private, no data leaves your execution environment at any point.
+Scrapalot Chat is CLI and UI Web app for chatbot question answering experience over your document database.
+Without an internet connection, using the power of LLMs.
+100% private, no data leaves your execution environment at any point.
 You can ingest documents and ask questions without an internet connection!
+If supports text-to-speech (over CLI), and `question`, `answer`, `source documents` translations using Google Translate.
+
+![API](img/web_ui_asked_question.png)
+![API](img/web_ui_question_answered.png)
 
 ## Discord server
 
@@ -157,7 +163,7 @@ LLM models tested and placed under `models` directory:
 - `gpt4all`: [ggml-gpt4all-j-v1.3-groovy.bin](https://gpt4all.io/models/ggml-gpt4all-j-v1.3-groovy.bin)
     - If you prefer a different `GPT4All-J` compatible model, just download it and reference it in your `.env` file.
     - If you prefer a llama model, download [ggml-model-q4_0.bin](https://huggingface.co/Pi3141/alpaca-native-7B-ggml/tree/main)
-        - NOTE: you need to adapt `GPT4ALL_BACKEND`
+        - **NOTE**: you need to adapt `GPT4ALL_BACKEND`
 - `llamacpp`: [WizardLM-7B-uncensored.ggmlv3.q8_0.bin](https://huggingface.co/TheBloke/WizardLM-7B-uncensored-GGML/tree/8917029d1fecd37d2c3a395d399868bfd225ff36)
 - `llamacpp`: [ggml-vicuna-13b-1.1](https://huggingface.co/vicuna/ggml-vicuna-13b-1.1/tree/main)
 - `llamacpp`: [koala-7B.ggmlv3.q8_0.bin](https://huggingface.co/TheBloke/koala-7B-GGML/tree/main)
@@ -165,8 +171,8 @@ LLM models tested and placed under `models` directory:
 - `huggingface-local`: [TheBloke/guanaco-7B-HF](https://huggingface.co/TheBloke/guanaco-7B-HF)
 - `huggingface-hub`: **Not yet implemented!**
 
-| **NOTE: huggingface-local & huggingface-hub are under development** |
-|---------------------------------------------------------------------|
+| **NOTE**: huggingface-local & huggingface-hub are under development** |
+|-----------------------------------------------------------------------|
 
 ### How to select different LLM models?
 
@@ -268,14 +274,8 @@ streamlit run scrapalot_main_web.py
 
 UI supports specifying `database` and `collection` in the database where the questions would be asked.
 
-| **NOTE: collections support are under development (for now they're ignored) ** |
-|--------------------------------------------------------------------------------|
-
-![API](img/web_ui_asked_question.png)
-
-And the answer section:
-
-![API](img/web_ui_question_answered.png)
+| **NOTE**: collections support are under development (for now they're ignored) ** |
+|----------------------------------------------------------------------------------|
 
 # OS Setup
 
