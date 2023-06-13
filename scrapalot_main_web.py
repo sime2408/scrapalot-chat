@@ -12,8 +12,15 @@ from scripts.app_environment import api_base_url
 
 st.set_page_config(layout="wide")
 
+st.markdown("""
+<style>
+.small-font {
+    font-size:0.8rem !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # --- translation settings ---
-PAGE_ICON: str = "🤖"
 LANG_EN: str = "en"
 LANG_DE: str = "de"
 LANG_ES: str = "es"
@@ -69,7 +76,6 @@ def setup_translation():
     )
 
     set_translation(selected_lang)
-    st.markdown(f"<h1 style='text-align: center;'>{st.session_state.locale.title}</h1>", unsafe_allow_html=True)
 
 
 def get_database_names_and_collections():
@@ -106,6 +112,7 @@ def query_documents(question: str, database_name: str, collection_name: str):
             result = response.json()
             answer = result["answer"]
             source_documents = result["source_documents"]
+            set_translation(st.session_state['locale'])
             return answer, source_documents
         else:
             st.error("Failed to query documents.")
@@ -186,7 +193,7 @@ def handle_user_query_processing(user_input):
         #     message(doc["content"], key=answer_key + '_' + str(idx) + '_content', avatar_style="bottts", seed=5)
         for idx, doc in enumerate(st.session_state['db_states'][selected_database]['source_documents'][0]):
             st.write(f'> {doc["link"]}:')
-            st.write(doc["content"])
+            st.markdown(f'<p class="small-font">{doc["content"]}</p>', unsafe_allow_html=True)
 
 
 # noinspection PyUnresolvedReferences
@@ -238,8 +245,8 @@ def redraw_conversation():
 
 def main():
     initialize_state()
-    setup_translation()
     handle_file_upload()
+    setup_translation()
     st.divider()
     # Query section
     handle_database_and_collection_selection()
