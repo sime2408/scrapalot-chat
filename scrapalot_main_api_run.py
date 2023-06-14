@@ -78,7 +78,8 @@ async def root():
 
 def run_ingest(database_name: str, collection_name: Optional[str] = None):
     if database_name and not collection_name:
-        subprocess.run(["python", "scrapalot_ingest.py", "--ingest-dbname", database_name], check=True)
+        subprocess.run(["python", "scrapalot_ingest.py",
+                        "--ingest-dbname", database_name], check=True)
     if database_name and collection_name:
         subprocess.run(["python", "scrapalot_ingest.py",
                         "--ingest-dbname", database_name, "--collection", collection_name], check=True)

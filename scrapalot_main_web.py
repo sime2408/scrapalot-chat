@@ -29,7 +29,7 @@ LANG_IT: str = "it"
 LANG_HR: str = "hr"
 
 translations = [
-    LANG_EN, LANG_DE, LANG_ES, LANG_FR, LANG_HR, LANG_IT, LANG_HR
+    LANG_EN, LANG_DE, LANG_ES, LANG_FR, LANG_IT, LANG_HR
 ]
 
 # --- upload settings ---
@@ -69,7 +69,7 @@ def setup_translation():
     selected_lang = option_menu(
         menu_title=None,
         options=translations,
-        icons=["globe2", "translate", "translate", "translate", "translate", "translate", "translate"],
+        icons=["globe2", "translate", "translate", "translate", "translate", "translate"],
         menu_icon="cast",
         default_index=translations.index(os.environ.get('TRANSLATE_DST_LANG')),
         orientation="horizontal",
