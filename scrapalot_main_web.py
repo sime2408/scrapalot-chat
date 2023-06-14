@@ -130,7 +130,7 @@ def handle_file_upload():
     col1, col2 = st.columns(2)
 
     selected_database = col1.selectbox("Database destination", database_names)
-    selected_collection = col2.text_input("Collection destination", value="", label_visibility="visible")
+    selected_collection = col2.text_input("Collection destination", placeholder="under development", disabled=True, value="", label_visibility="visible")
 
     if st.button("Submit"):
         upload_documents(uploaded_files, selected_database, selected_collection)

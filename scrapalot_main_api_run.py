@@ -95,10 +95,7 @@ async def set_translation(body: TranslationBody):
 
 
 @app.post("/upload")
-async def upload_documents(
-    database_name: str = Form(...),
-    files: List[UploadFile] = File(...),
-    collection_name: Optional[str] = None):
+async def upload_documents(database_name: str = Form(...), collection_name: str = Form(None), files: List[UploadFile] = File(...)):
     saved_files = []
     source_documents = './source_documents'
     try:
