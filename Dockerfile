@@ -17,6 +17,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 WORKDIR /home/scrapalot/scrapalot-chat
 
 # Copy required files
+COPY .streamlit ./.streamlit
 COPY scripts ./scripts
 COPY ["requirements.txt", "scrapalot_ingest.py", "scrapalot_main.py", "scrapalot_main_api_run.py", "scrapalot_main_web.py", "./"]
 
