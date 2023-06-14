@@ -12,7 +12,7 @@ from langchain.vectorstores import Chroma
 from openai.error import AuthenticationError
 
 from scrapalot_browse import speak_chunk
-from .app_environment import translate_dst, translate_src, translate_docs, translate_q, translate_a, ingest_target_source_chunks, args, openai_use, ingest_embeddings_model, gpu_is_enabled, \
+from .app_environment import translate_dst, translate_src, translate_docs, translate_q, ingest_target_source_chunks, args, openai_use, ingest_embeddings_model, gpu_is_enabled, \
     chromaDB_manager
 
 
@@ -74,7 +74,7 @@ def process_database_question(database_name, llm, collection_name: Optional[str]
     return qa
 
 
-def process_query(qa: BaseRetrievalQA, query: str, chat_history, chromadb_get_only_relevant_docs: bool):
+def process_query(qa: BaseRetrievalQA, query: str, chat_history, chromadb_get_only_relevant_docs: bool, translate_answer: bool):
     try:
 
         if chromadb_get_only_relevant_docs:
@@ -92,7 +92,7 @@ def process_query(qa: BaseRetrievalQA, query: str, chat_history, chromadb_get_on
 
         answer, docs = res['answer'], res['source_documents']
         # Translate answer if necessary
-        if translate_a:
+        if translate_answer:
             answer = GoogleTranslator(source=translate_src, target=translate_dst).translate(answer)
 
         print(f"\n\033[1m\033[97mAnswer: \"{answer}\"\033[0m\n")

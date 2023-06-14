@@ -43,7 +43,8 @@ services:
   scrapalot-chat-web:
     container_name: scrapalot-chat-web
     image: scrapalot-chat:latest
-    command: [ "streamlit", "run", "scrapalot_main_web.py", "--server.port=8501" ]
+    command: [ "streamlit", "run", "scrapalot_main_web.py",
+               "--server.port=8501", "--theme.primaryColor #1e81b0" "--theme.secondaryBackgroundColor #84c0d6" ]
     ports:
       - "8501:8501"
     environment:

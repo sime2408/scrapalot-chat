@@ -167,7 +167,7 @@ def main():
             qa = qa_list[i]
 
             print(f"\n\033[94mSeeking for answer from: [{selected_directory_list[i]}]. May take some minutes...\033[0m")
-            answer, docs = process_query(qa, query, chat_history, db_get_only_relevant_docs)
+            answer, docs = process_query(qa, query, chat_history, db_get_only_relevant_docs, translate_answer=True)
             print(f"\033[94mTook {round(((monotonic() - start_time) / 60), 2)} min to process the answer!\n\033[0m")
 
             if docs is not None:

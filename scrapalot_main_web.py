@@ -10,7 +10,9 @@ from urllib3.connection import HTTPConnection
 
 from scripts.app_environment import api_base_url
 
-st.set_page_config(layout="wide")
+st.set_page_config(
+    layout="centered"
+)
 
 st.markdown("""
 <style>
@@ -54,11 +56,11 @@ def initialize_state():
 
 
 def set_translation(locale):
+    st.session_state['locale'] = locale
     payload = {"locale": locale}  # Send locale directly
     endpoint = f"{api_base_url}/set-translation"
     response = requests.post(endpoint, json=payload)
     if response.status_code == 200:
-        st.session_state['locale'] = locale
         pass
     else:
         # Handle error here
@@ -78,6 +80,7 @@ def setup_translation():
     set_translation(selected_lang)
 
 
+@st.cache_data
 def get_database_names_and_collections():
     endpoint = f"{api_base_url}/databases"
     response = requests.get(endpoint)
@@ -245,38 +248,45 @@ def redraw_conversation():
 
 def main():
     initialize_state()
-    handle_file_upload()
     setup_translation()
-    st.divider()
-    # Query section
-    handle_database_and_collection_selection()
-    selected_database = st.session_state['selected_database']
 
-    clear_history_button = st.button("Clear History")
+    tab_qa, tab_upload = st.tabs(["Chat with documents", "Upload document"])
 
-    if clear_history_button:
-        # Clear the history for the selected database
-        if selected_database in st.session_state['db_states']:
-            st.session_state['db_states'][selected_database] = {
-                'history': [],  # This will store both questions and answers
-                'source_documents': []
-            }
+    with tab_qa:
+        st.header("Chat with documents")
+        # Query section
+        handle_database_and_collection_selection()
+        selected_database = st.session_state['selected_database']
 
-    if selected_database:
-        if selected_database != st.session_state['current_db']:
-            st.session_state['current_db'] = selected_database
-            # Ensure the selected database has an entry in the session state
-            if selected_database not in st.session_state['db_states']:
+        clear_history_button = st.button("Clear History")
+
+        if clear_history_button:
+            # Clear the history for the selected database
+            if selected_database in st.session_state['db_states']:
                 st.session_state['db_states'][selected_database] = {
                     'history': [],  # This will store both questions and answers
                     'source_documents': []
                 }
-            redraw_conversation()
-        else:
-            # If the database didn't change, display the history
-            redraw_conversation()
 
-        handle_user_query()
+        if selected_database:
+            if selected_database != st.session_state['current_db']:
+                st.session_state['current_db'] = selected_database
+                # Ensure the selected database has an entry in the session state
+                if selected_database not in st.session_state['db_states']:
+                    st.session_state['db_states'][selected_database] = {
+                        'history': [],  # This will store both questions and answers
+                        'source_documents': []
+                    }
+                redraw_conversation()
+            else:
+                # If the database didn't change, display the history
+                redraw_conversation()
+
+            handle_user_query()
+
+    with tab_upload:
+        st.header("Upload document")
+        handle_file_upload()
 
 
 if __name__ == "__main__":

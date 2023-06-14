@@ -159,32 +159,47 @@ def prompt_user():
             print("\n\033[91m\033[1m[!] \033[0mInvalid choice. Please try again.\033[91m\033[1m[!] \033[0m\n")
 
 
-def main(source_dir: str, persist_dir: str, db_collection_name: str, sub_collection_name: Optional[str] = None):
-    # Create embeddings
+def create_embeddings():
     embeddings_kwargs = {'device': 'cuda'} if gpu_is_enabled else {}
-    embeddings = HuggingFaceEmbeddings(
+    return HuggingFaceEmbeddings(
         model_name=ingest_embeddings_model if ingest_embeddings_model else args.ingest_embeddings_model,
         model_kwargs=embeddings_kwargs
     )
 
-    if does_vectorstore_exist(persist_dir):
-        # Update and store locally vectorstore
-        print(f"Appending to existing vectorstore at {persist_dir}")
 
-        db = Chroma(
-            persist_directory=persist_dir,
-            collection_name=db_collection_name,
-            embedding_function=embeddings,
-            client_settings=chromaDB_manager.get_chroma_setting(persist_dir)
-        )
+def create_chroma(collection_name: str, embeddings, persist_dir):
+    return Chroma(
+        persist_directory=persist_dir,
+        collection_name=collection_name,
+        embedding_function=embeddings,
+        client_settings=chromaDB_manager.get_chroma_setting(persist_dir)
+    )
+
+
+def process_and_add_documents(collection, chroma_db):
+    texts = process_documents([metadata['source'] for metadata in collection['metadatas']])
+    num_elements = len(texts)
+    index_metadata = {"elements": num_elements}
+    print(f"Creating embeddings. May take some minutes...")
+    chroma_db.add_documents(texts, index_metadata=index_metadata)
+
+
+def main(source_dir: str, persist_dir: str, db_name: str, sub_collection_name: Optional[str] = None):
+    embeddings = create_embeddings()
+
+    if does_vectorstore_exist(persist_dir):
+        print(f"Appending to existing vectorstore at {persist_dir}")
+        db = create_chroma(db_name, embeddings, persist_dir)
         collection = db.get()
-        texts = process_documents([metadata['source'] for metadata in collection['metadatas']])
-        num_elements = len(texts)  # Calculate the total number of documents in texts
-        index_metadata = {"elements": num_elements}  # Provide the "elements" key
-        print(f"Creating embeddings. May take some minutes...")
-        db.add_documents(texts, index_metadata=index_metadata)
+
+        if sub_collection_name:
+            print(f"Appending to collection {sub_collection_name}")
+            db_collection = create_chroma(sub_collection_name, embeddings, persist_dir)
+            collection = db_collection.get()
+            process_and_add_documents(collection, db_collection)
+        else:
+            process_and_add_documents(collection, db)
     else:
-        # Create and store locally vectorstore
         print(f"Creating new vectorstore from {source_dir}")
         texts = process_documents([source_dir])
         num_elements = len(texts)  # Calculate the total number of documents in texts
@@ -193,7 +208,7 @@ def main(source_dir: str, persist_dir: str, db_collection_name: str, sub_collect
             texts,
             embeddings,
             persist_directory=persist_dir,
-            collection_name=db_collection_name,
+            collection_name=db_name,
             client_settings=chromaDB_manager.get_chroma_setting(persist_dir),
             index_metadata=index_metadata
         )

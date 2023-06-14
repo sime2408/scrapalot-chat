@@ -24,7 +24,7 @@
       </ENTRIES>
     </EXTENSION>
     <option name="SCRIPT_NAME" value="/usr/local/anaconda3/envs/scrapalot-chat/bin/streamlit" />
-    <option name="PARAMETERS" value="run scrapalot_main_web.py" />
+    <option name="PARAMETERS" value="run scrapalot_main_web.py --server.runOnSave True --theme.primaryColor &quot;#1e81b0&quot; --theme.secondaryBackgroundColor #84c0d6" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
