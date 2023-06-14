@@ -1,8 +1,12 @@
 # Scrapalot Chat
 
-Scrapalot Chat is CLI and UI Web app for chatbot question-answering experience over your document database. Without an internet connection, using the power of LLMs.100% private, no data leaves your
-execution environment at any point. You can ingest documents and ask questions without an internet connection! If supports text-to-speech (over CLI), and `question`, `answer`, and `source documents`
-translations using Google Translate from English written documents to others.
+Scrapalot Chat is CLI and UI Web app for chatbot question-answering experience over your document database.
+Without an internet connection, using the power of LLMs.
+100% private, no data leaves your
+execution environment at any point.
+You can ingest documents and ask questions without an internet connection!
+If supports text-to-speech (over CLI), and `question`, `answer`, and `source documents`
+translations using Google Translate from 🌍English 🌍 written documents to German 🇩🇪, Spain 🇪🇸, France: 🇫🇷, Italy: 🇮🇹, Croatia: 🇭🇷.
 
 ![API](img/web_ui_asked_question.png)
 ![API](img/web_ui_question_answered.png)
