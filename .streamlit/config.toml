@@ -1,0 +1,11 @@
+[theme]
+base = "light"
+primaryColor = "#1e81b0"
+secondaryBackgroundColor = "#84c0d6"
+
+[server]
+port = 8501
+maxUploadSize = 20
+
+[browser]
+serverPort = 8501
