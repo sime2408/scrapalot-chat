@@ -1,5 +1,5 @@
-langchain==0.0.197
-gpt4all==0.3.2
+langchain==0.0.200
+gpt4all==0.3.4
 chromadb==0.3.26
 llama-cpp-python==0.1.61
 urllib3==2.0.3
