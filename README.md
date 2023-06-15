@@ -212,11 +212,11 @@ python scrapalot_main.py --mute-stream
 ```
 
 Argument `mute-stream` here indicates that LLM won't stream answer to the console but will rather generate it
-at once when generation is finished. List of available arguments are:
+at once when generation is finished. The List of available arguments are:
 
-- `--ingest-dbname`: If you want to directly specify which database you want to ingest without going to q/a CLI steps.
-- `--collection`: Saves the embedding in a collection name. This enables you to granulate your database into section.
-  Later, from the UI you can choose database and collection to isolate your question there.
+- `--ingest-dbname`: If you want to directly specify, which database you want to ingest without going to q/a CLI steps.
+- `--collection`: Saves the embedding in a collection name. This enables you to granulate your database into a section.
+  Later from the UI, you can choose a database and collection to isolate your question there.
   By default, your main collection will be named after your database name. As an example, database `medicine`
   can have collections: `allergy`, `immunology`, `anesthesiology`, `dermatology`, `radiology`..., and so on.
 - `--hide-source`: Use this flag to disable printing of source documents and book chunk of document from vectorstore

@@ -9,6 +9,7 @@ from typing import List
 from langchain.document_loaders import (
     CSVLoader,
     EverNoteLoader,
+    PyMuPDFLoader,
     TextLoader,
     JSONLoader,
     UnstructuredEPubLoader,
@@ -17,7 +18,7 @@ from langchain.document_loaders import (
     UnstructuredODTLoader,
     UnstructuredPowerPointLoader,
     UnstructuredWordDocumentLoader,
-    UnstructuredEmailLoader, PyMuPDFLoader,
+    UnstructuredEmailLoader,
 )
 from langchain.schema import Document
 
