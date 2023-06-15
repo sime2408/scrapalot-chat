@@ -64,7 +64,6 @@ DB_GET_ONLY_RELEVANT_DOCS: If this is set to `true` only documents will be retur
 OPENAI_USE: Whether to use this model or not, if yes, different embeddings should be used
 
 GPU_IS_ENABLED: Whether or not your GPU environment is enabled.
-GPU_MODEL_N_THREADS: How much threads will be used when model process the data on GPU
 
 OPENAI_API_KEY: OpenAI key for http calls to OpenAI GPT-4 API
 HUGGINGFACEHUB_API_TOKEN: Token to connect to huggingface and download the models
