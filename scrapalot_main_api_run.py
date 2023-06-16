@@ -100,23 +100,23 @@ async def upload_documents(database_name: str = Form(...), collection_name: str 
     source_documents = './source_documents'
     try:
         for file in files:
-            if not collection_name:
-                file_path = os.path.join(source_documents, database_name, file.filename)
-            else:
+            if collection_name and database_name != collection_name:
                 file_path = os.path.join(source_documents, database_name, collection_name, file.filename)
+            else:
+                file_path = os.path.join(source_documents, database_name, file.filename)
 
             saved_files.append(file_path)
             with open(file_path, "wb") as f:
                 f.write(await file.read())
 
-        run_ingest(database_name, collection_name)
+            run_ingest(database_name, collection_name)
 
-        response = {
-            'message': "OK",
-            'files': saved_files,
-            "database_name": database_name
-        }
-        return response
+            response = {
+                'message': "OK",
+                'files': saved_files,
+                "database_name": database_name
+            }
+            return response
     except Exception as e:
         return ScrapalotErrorResponse(status_code=500, error=str(e))
 
