@@ -131,7 +131,7 @@ def get_llm_instance():
         return OpenAI(openai_api_key=openai_api_key, callbacks=callbacks)
     else:
         logging.error(f"Model {model_type} not supported!")
-        exit()
+        raise Exception(f"Model type {model_type} is not supported. Please choose one of the following: LlamaCpp, GPT4All")
 
 
 def main():
