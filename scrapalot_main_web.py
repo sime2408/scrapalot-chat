@@ -11,7 +11,8 @@ from urllib3.connection import HTTPConnection
 from scripts.app_environment import api_base_url
 
 st.set_page_config(
-    layout="centered"
+    layout="centered",
+    page_title="scrapalot-chat"
 )
 
 st.markdown("""
@@ -131,24 +132,23 @@ def handle_file_upload():
 
     database_names = list(databases.keys())
     col1, col2 = st.columns(2)
-
-    selected_database = col1.selectbox("Database destination", database_names)
-    selected_collection = col2.text_input("Collection destination", placeholder="under development", disabled=True, value="", label_visibility="visible")
+    st.session_state['selected_database'] = col1.selectbox(label="Database", options=database_names, key="upload_db")
+    collections = databases.get(st.session_state['selected_database'], [])
+    st.session_state['selected_collection'] = col2.selectbox("Collection", collections, key="upload_collection")
 
     if st.button("Submit"):
-        upload_documents(uploaded_files, selected_database, selected_collection)
+        upload_documents(uploaded_files, st.session_state['selected_database'], st.session_state['selected_collection'])
 
 
 def handle_database_and_collection_selection():
     database_names = list(databases.keys())
-
     col1, col2 = st.columns(2)
-    st.session_state['selected_database'] = col1.selectbox("Database", database_names)
+    st.session_state['selected_database'] = col1.selectbox(label="Database", options=database_names, key="qa_db")
 
     # Make sure that a database is selected
     if st.session_state['selected_database']:
         collections = databases.get(st.session_state['selected_database'], [])
-        st.session_state['selected_collection'] = col2.selectbox("Collection", collections)
+        st.session_state['selected_collection'] = col2.selectbox(label="Collection", options=collections, key="qa_collection")
 
 
 def handle_user_query():
@@ -286,6 +286,7 @@ def main():
 
     with tab_upload:
         st.header("Upload document")
+        # Upload section
         handle_file_upload()
 
 

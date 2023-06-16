@@ -122,7 +122,7 @@ conda install -c anaconda pandoc
 
 # Installation
 
-See OS Setup section on how to install dependencies for your specific Operating System.
+See the OS Setup section on how to install dependencies for your specific Operating System.
 
 ```shell
 pip3 install -r requirements.txt
@@ -179,19 +179,14 @@ LLM models tested and placed under `models` directory:
 
 The following will provide instructions on how you can select a different LLM model to create your response:
 
-1. Open up `run_localGPT.py`
-2. Go to `def main(device_type, show_sources)`
-3. Go to the comment where it says `# load the LLM for generating Natural Language responses`
-4. Below it, it details a bunch of examples on models from HuggingFace that have already been tested to be run with the original trained model (ending with HF or have a .bin in its "Files and
-   versions"), and quantized models (ending with GPTQ or have a .no-act-order or .safetensors in its "Files and versions").
-5. For models that end with HF or have a .bin inside its "Files and versions" on its HuggingFace page.
+1. For models that end with HF or have a .bin inside its "Files and versions" on its HuggingFace page.
     * Make sure you have a model_id selected. For example -> `model_id = "TheBloke/guanaco-7B-HF"`
     * If you go to its HuggingFace [Site] (https://huggingface.co/TheBloke/guanaco-7B-HF) and go to "Files and versions" you will notice model files that end with a .bin extension.
     * Any model files that contain .bin extensions will be run with the following code where the `# load the LLM for generating Natural Language responses` comment is found.
     * `model_id = "TheBloke/guanaco-7B-HF"`
 
       `llm = load_model(device_type, model_id=model_id)`
-6. For models that contain GPTQ in its name and or have a .no-act-order or .safetensors extension inside its "Files and versions on its HuggingFace page.
+2. For models that contain GPTQ in its name and or have a .no-act-order or .safetensors extension inside its "Files and versions on its HuggingFace page.
     * Make sure you have a model_id selected. For example -> model_id = `"TheBloke/wizardLM-7B-GPTQ"`
     * You will also need its model basename file selected. For example -> `model_basename = "wizardLM-7B-GPTQ-4bit.compat.no-act-order.safetensors"`
     * If you go to its HuggingFace [Site] (https://huggingface.co/TheBloke/wizardLM-7B-GPTQ) and go to "Files and versions" you will notice a model file that ends with a .safetensors extension.
@@ -201,7 +196,7 @@ The following will provide instructions on how you can select a different LLM mo
       `model_basename = "WizardLM-7B-uncensored-GPTQ-4bit-128g.compat.no-act-order.safetensors"`
 
       `llm = load_model(device_type, model_id=model_id, model_basename = model_basename)`
-7. Comment out all other instances of `model_id="other model names"`, `model_basename=other base model names`, and `llm = load_model(args*)`
+3. Comment out all other instances of `model_id="other model names"`, `model_basename=other base model names`, and `llm = load_model(args*)`
 
 ## Run QA application
 
@@ -215,7 +210,7 @@ Argument `mute-stream` here indicates that LLM won't stream answer to the consol
 at once when generation is finished. The List of available arguments are:
 
 - `--ingest-dbname`: If you want to directly specify, which database you want to ingest without going to q/a CLI steps.
-- `--collection`: Saves the embedding in a collection name. This enables you to granulate your database into a section.
+- `--collection`: Saves the embedding in a collection name. This enables you to granulate your database into a sections / tags.
   Later from the UI, you can choose a database and collection to isolate your question there.
   By default, your main collection will be named after your database name. As an example, database `medicine`
   can have collections: `allergy`, `immunology`, `anesthesiology`, `dermatology`, `radiology`..., and so on.
@@ -275,14 +270,11 @@ streamlit run scrapalot_main_web.py
 
 UI supports specifying `database` and `collection` in the database where the questions would be asked.
 
-| **NOTE**: collections support are under development (for now they're ignored) ** |
-|----------------------------------------------------------------------------------|
-
 # OS Setup
 
 # CPU processor
 
-CPU is slower than GPU but if your system does not have this support you will have to set `GPU_IS_ENABLED` variable to `false`.
+CPU is slower than GPU, but if your system does not have this support, you will have to set `GPU_IS_ENABLED` variable to `false`.
 GPU acceleration is available on `NVIDIA` graphic cards and can speed up generation of answers by 80% (depends on hardware)
 
 ## CPU (Linux):

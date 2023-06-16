@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from langchain import HuggingFacePipeline, HuggingFaceHub, LLMChain, PromptTemplate
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.llms import LlamaCpp, GPT4All, OpenAI
+from langchain.schema import Document
 from torch import cuda as torch_cuda
 from transformers import LlamaForCausalLM
 from transformers import LlamaTokenizer
@@ -152,8 +153,16 @@ def main():
             break
 
         qa_list = []
-        for i in range(len(selected_directory_list)):
-            qa_list.append(process_database_question(selected_directory_list[i], llm, selected_directory_list[i]))
+        for dir_name in selected_directory_list:
+            # Check if the directory name contains a slash, indicating a sub-collection
+            if "/" in dir_name:
+                # If so, split the string to separate the database name and the collection name
+                database_name, collection_name = dir_name.split("/")
+            else:
+                # If not, the database name and the collection name are the same
+                database_name, collection_name = dir_name, dir_name
+
+            qa_list.append(process_database_question(database_name=database_name, llm=llm, collection_name=collection_name))
 
         # Doesn't work very well for some reason won't send proper collection name to process_database_question?
         # def worker(j):
@@ -170,7 +179,11 @@ def main():
             answer, docs = process_query(qa, query, chat_history, db_get_only_relevant_docs, translate_answer=True)
             print(f"\033[94mTook {round(((monotonic() - start_time) / 60), 2)} min to process the answer!\n\033[0m")
 
-            if docs is not None:
+            if isinstance(docs, Document):
+                doc = docs
+                print_hyperlink(doc)
+                print_document_chunk(doc)
+            else:
                 for doc in docs:
                     print_hyperlink(doc)
                     print_document_chunk(doc)

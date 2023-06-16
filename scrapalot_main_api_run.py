@@ -100,9 +100,12 @@ async def upload_documents(database_name: str = Form(...), collection_name: str 
     source_documents = './source_documents'
     try:
         for file in files:
-            file_path = os.path.join(source_documents, database_name, file.filename)
-            saved_files.append(file_path)
+            if not collection_name:
+                file_path = os.path.join(source_documents, database_name, file.filename)
+            else:
+                file_path = os.path.join(source_documents, database_name, collection_name, file.filename)
 
+            saved_files.append(file_path)
             with open(file_path, "wb") as f:
                 f.write(await file.read())
 
@@ -150,7 +153,8 @@ async def query_documents(body: QueryBody, llm=Depends(get_llm)):
         if translate_q:
             question = GoogleTranslator(source=locale, target=translate_src).translate(question)
 
-        print(f"\n\033[94mSeeking for answer from: [{database_name}]. May take some minutes...\033[0m")
+        seeking_from = database_name + '/' + collection_name if collection_name else database_name
+        print(f"\n\033[94mSeeking for answer from: [{seeking_from}]. May take some minutes...\033[0m")
         qa = process_database_question(database_name, llm, collection_name)
         answer, docs = process_query(qa, question, chat_history, chromadb_get_only_relevant_docs=False, translate_answer=False)
 

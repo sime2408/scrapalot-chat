@@ -41,14 +41,13 @@ def prompt():
             print("Invalid input: Please enter a number. Try again.")
 
         if valid_input:
-            # Split the input by comma and create a list
-            selected_directory_list = user_input.split(',')
+            selected_directory_list = [directories[int(dir) - 1] for dir in selected_directory_list]
             # Use the latest directory from the list
-            selected_directory = directories[int(selected_directory_list[-1]) - 1]
+            selected_directory = selected_directory_list[-1]
             # let's store only the latest as a path variable
             selected_directory_path = f"./source_documents/{selected_directory}"
             selected_db_path = f"./db/{selected_directory}"
             set_key('.env', 'INGEST_SOURCE_DIRECTORY', selected_directory_path)
             set_key('.env', 'INGEST_PERSIST_DIRECTORY', selected_db_path)
             print(f"Storing env variable defaults: {selected_db_path}")
-            return [directories[int(dir) - 1] for dir in selected_directory_list]
+            return selected_directory_list
