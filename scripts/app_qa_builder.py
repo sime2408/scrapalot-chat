@@ -50,12 +50,9 @@ def process_database_question(database_name, llm, collection_name: Optional[str]
     )
     persist_dir = f"./db/{database_name}"
 
-    # Adjusting collection_name to consider subdirectories
-    collection_name = collection_name.split('.')[-1] if collection_name else args.collection
-
     db = Chroma(persist_directory=persist_dir,
                 embedding_function=embeddings,
-                collection_name=collection_name,
+                collection_name=collection_name if collection_name else args.collection,
                 client_settings=chromaDB_manager.get_chroma_setting(persist_dir)
                 )
 

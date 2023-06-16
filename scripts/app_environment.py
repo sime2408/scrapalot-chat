@@ -30,10 +30,7 @@ gpu_model_n_threads = int(os.environ.get("GPU_MODEL_N_THREADS", "16"))
 
 # If you want to check if your system supports cuda:
 def is_cuda_available() -> bool:
-    if torch.cuda.is_available():
-        return True
-    else:
-        return False
+    return torch.cuda.is_available()
 
 
 # Load environment variables
@@ -79,7 +76,10 @@ huggingface_hub_key = os.environ.get("HUGGINGFACEHUB_API_TOKEN")
 gpt4all_backend = os.environ.get("GPT4ALL_BACKEND", "gptj")
 
 # Setting specific for LLAMA GPU models
-gpu_is_enabled = os.environ.get('GPU_IS_ENABLED', is_cuda_available()) == "True"
+gpu_is_enabled = os.environ.get('GPU_IS_ENABLED', "false") == "true"
+# Force GPU_IS_ENABLED env var, if it's not set, use the result of is_cuda_available()
+if str(is_cuda_available()).lower() == "true":
+    gpu_is_enabled = "true"
 
 # Setting specific for a database
 db_get_only_relevant_docs = os.environ.get("DB_GET_ONLY_RELEVANT_DOCS", "false") == "true"
