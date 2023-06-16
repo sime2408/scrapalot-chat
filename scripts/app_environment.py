@@ -133,7 +133,6 @@ def parse_arguments():
     )
     parser.add_argument(
         "--collection",
-        default="langchain",
         help="Saves the embedding in a collection name as specified"
     )
     parser.add_argument(

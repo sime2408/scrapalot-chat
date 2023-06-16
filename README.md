@@ -282,7 +282,7 @@ UI supports specifying `database` and `collection` in the database where the que
 
 # CPU processor
 
-CPU is slower than GPU but if your system does not have this support you will have to set `GPU_IS_ENABLED` variable to `false`.
+CPU is slower than GPU, but if your system does not have this support, you will have to set `GPU_IS_ENABLED` variable to `false`.
 GPU acceleration is available on `NVIDIA` graphic cards and can speed up generation of answers by 80% (depends on hardware)
 
 ## CPU (Linux):
