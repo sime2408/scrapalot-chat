@@ -1,3 +1,4 @@
+import base64
 import os
 import socket
 from typing import List
@@ -39,6 +40,11 @@ translations = [
 ACCEPTABLE_FILE_TYPES = ["pdf", "epub", "docx"]
 
 
+###############################################################################
+# init
+###############################################################################
+
+
 def initialize_state():
     if 'db_states' not in st.session_state:
         st.session_state['db_states'] = {}
@@ -54,6 +60,14 @@ def initialize_state():
 
     if 'locale' not in st.session_state:
         st.session_state['locale'] = 'en'
+
+    if 'book_button_clicked' not in st.session_state:
+        st.session_state['book_button_clicked'] = False
+
+
+###############################################################################
+# translation
+###############################################################################
 
 
 def set_translation(locale):
@@ -81,6 +95,11 @@ def setup_translation():
     set_translation(selected_lang)
 
 
+###############################################################################
+# database
+###############################################################################
+
+
 @st.cache_data
 def get_database_names_and_collections():
     endpoint = f"{api_base_url}/databases"
@@ -96,6 +115,22 @@ def get_database_names_and_collections():
 
 
 databases = get_database_names_and_collections()
+
+
+def handle_database_and_collection_selection():
+    database_names = list(databases.keys())
+    col1, col2 = st.columns(2)
+    st.session_state['selected_database'] = col1.selectbox(label="Database", options=database_names, key="qa_db")
+
+    # Make sure that a database is selected
+    if st.session_state['selected_database']:
+        collections = databases.get(st.session_state['selected_database'], [])
+        st.session_state['selected_collection'] = col2.selectbox(label="Collection", options=collections, key="qa_collection")
+
+
+###############################################################################
+# chat
+###############################################################################
 
 
 def query_documents(question: str, database_name: str, collection_name: str):
@@ -121,34 +156,6 @@ def query_documents(question: str, database_name: str, collection_name: str):
         else:
             st.error("Failed to query documents.")
             st.write(response.text)
-
-
-def handle_file_upload():
-    uploaded_files = st.file_uploader(
-        "Upload",
-        accept_multiple_files=True,
-        type=ACCEPTABLE_FILE_TYPES
-    )
-
-    database_names = list(databases.keys())
-    col1, col2 = st.columns(2)
-    st.session_state['selected_database'] = col1.selectbox(label="Database", options=database_names, key="upload_db")
-    collections = databases.get(st.session_state['selected_database'], [])
-    st.session_state['selected_collection'] = col2.selectbox("Collection", collections, key="upload_collection")
-
-    if st.button("Submit"):
-        upload_documents(uploaded_files, st.session_state['selected_database'], st.session_state['selected_collection'])
-
-
-def handle_database_and_collection_selection():
-    database_names = list(databases.keys())
-    col1, col2 = st.columns(2)
-    st.session_state['selected_database'] = col1.selectbox(label="Database", options=database_names, key="qa_db")
-
-    # Make sure that a database is selected
-    if st.session_state['selected_database']:
-        collections = databases.get(st.session_state['selected_database'], [])
-        st.session_state['selected_collection'] = col2.selectbox(label="Collection", options=collections, key="qa_collection")
 
 
 def handle_user_query():
@@ -191,12 +198,72 @@ def handle_user_query_processing(user_input):
 
         # Display the source documents in the same container
         st.write("source:")
-        # for idx, doc in enumerate(st.session_state['db_states'][selected_database]['source_documents'][0]):
-        #     message(doc["link"], key=answer_key + '_' + str(idx) + '_link', avatar_style="bottts", seed=5)
-        #     message(doc["content"], key=answer_key + '_' + str(idx) + '_content', avatar_style="bottts", seed=5)
-        for idx, doc in enumerate(st.session_state['db_states'][selected_database]['source_documents'][0]):
-            st.write(f'> {doc["link"]}:')
-            st.markdown(f'<p class="small-font">{doc["content"]}</p>', unsafe_allow_html=True)
+        redraw_source_documents(source_documents)
+
+
+###############################################################################
+# show pdf
+###############################################################################
+
+
+def display_pdf(file):
+    abs_path = os.path.abspath(file)
+    # Opening file from a file path
+    with open(abs_path, "rb") as f:
+        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+        # Embedding PDF in HTML
+        pdf_display = F'<embed src="data:application/pdf;base64,{base64_pdf}" width="800" height="800" type="application/pdf"/>'
+        # Displaying File
+        st.markdown(pdf_display, unsafe_allow_html=True)
+
+
+###############################################################################
+# reset chat
+###############################################################################
+
+
+def redraw_conversation():
+    selected_database = st.session_state['selected_database']
+    for msg in st.session_state['db_states'][selected_database]['history']:
+        if msg['is_user']:
+            message(msg['text'], is_user=True, key=msg['key'], avatar_style="bottts", seed=3)
+        else:
+            message(msg['text'], key=msg['key'], avatar_style="bottts", seed=5)
+
+    source_documents = st.session_state['db_states'][selected_database].get('source_documents', [])
+    if source_documents:  # Check if there are any source documents
+        st.write("source:")
+        redraw_source_documents(source_documents[0])
+
+
+def redraw_source_documents(source_documents):
+    # Display the answer and source documents in the same container
+    for idx, doc in enumerate(source_documents):
+        link = doc["link"]
+        st.write(f'> {link}:')
+        st.markdown(f'<p class="small-font">{doc["content"]}</p>', unsafe_allow_html=True)
+
+
+###############################################################################
+# upload
+###############################################################################
+
+
+def handle_file_upload():
+    uploaded_files = st.file_uploader(
+        "Upload",
+        accept_multiple_files=True,
+        type=ACCEPTABLE_FILE_TYPES
+    )
+
+    database_names = list(databases.keys())
+    col1, col2 = st.columns(2)
+    st.session_state['selected_database'] = col1.selectbox(label="Database", options=database_names, key="upload_db")
+    collections = databases.get(st.session_state['selected_database'], [])
+    st.session_state['selected_collection'] = col2.selectbox("Collection", collections, key="upload_collection")
+
+    if st.button("Submit"):
+        upload_documents(uploaded_files, st.session_state['selected_database'], st.session_state['selected_collection'])
 
 
 # noinspection PyUnresolvedReferences
@@ -214,6 +281,11 @@ def upload_documents(files: List[st.runtime.uploaded_file_manager.UploadedFile],
             st.write(response.text)
 
 
+###############################################################################
+# utils
+###############################################################################
+
+
 def set_keepalive_options(http_conn):
     http_conn.default_socket_options = (
         http_conn.default_socket_options + [
@@ -228,22 +300,6 @@ def set_keepalive_options(http_conn):
 
     if hasattr(socket, 'TCP_KEEPCNT'):
         http_conn.default_socket_options += [(socket.SOL_TCP, socket.TCP_KEEPCNT, 6)]
-
-
-def redraw_conversation():
-    selected_database = st.session_state['selected_database']
-    for msg in st.session_state['db_states'][selected_database]['history']:
-        if msg['is_user']:
-            message(msg['text'], is_user=True, key=msg['key'], avatar_style="bottts", seed=3)
-        else:
-            message(msg['text'], key=msg['key'], avatar_style="bottts", seed=5)
-
-    source_documents = st.session_state['db_states'][selected_database].get('source_documents', [])
-    if source_documents:  # Check if there are any source documents
-        st.write("source:")
-        for idx, doc in enumerate(source_documents[0]):
-            st.write(f'> {doc["link"]}:')
-            st.write(doc["content"])
 
 
 def main():
