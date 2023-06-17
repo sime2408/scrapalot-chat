@@ -60,7 +60,8 @@ def process_documents(collection_name: Optional[str] = None, ignored_files: List
     """
     Load documents and split them into chunks.
     """
-    documents = load_documents(source_directory, collection_name if args.ingest_dbname != collection_name else None, ignored_files)
+    # db_name = args.ingest_dbname or os.path.basename(source_directory)
+    documents = load_documents(source_directory, collection_name if db_name != collection_name else None, ignored_files)
     if not documents:
         print("No new documents to load")
         exit(0)
@@ -226,8 +227,9 @@ def main(source_dir: str, persist_dir: str, db_name: str, sub_collection_name: O
 if __name__ == "__main__":
     try:
         if args.ingest_dbname:
-            source_directory = f"./source_documents/{args.ingest_dbname}"
-            persist_directory = f"./db/{args.ingest_dbname}"
+            db_name = args.ingest_dbname
+            source_directory = f"./source_documents/{db_name}"
+            persist_directory = f"./db/{db_name}"
 
             if not os.path.exists(source_directory):
                 os.makedirs(source_directory)
@@ -237,9 +239,9 @@ if __name__ == "__main__":
 
             if args.collection:
                 sub_collection_name = args.collection
-                main(source_directory, persist_directory, args.ingest_dbname, sub_collection_name)
+                main(source_directory, persist_directory, db_name, sub_collection_name)
             else:
-                main(source_directory, persist_directory, args.ingest_dbname)
+                main(source_directory, persist_directory, db_name)
         else:
             source_directory, persist_directory = prompt_user()
             db_name = os.path.basename(persist_directory)
