@@ -72,7 +72,7 @@ def get_llm_instance():
             backend=gpt4all_backend,
             callbacks=callbacks,
             use_mlock=model_use_mlock,
-            n_threads=gpu_is_enabled if gpu_model_n_threads else cpu_model_n_threads,
+            n_threads=gpu_model_n_threads if gpu_is_enabled else cpu_model_n_threads,
             n_predict=1000,
             n_batch=model_n_batch,
             top_p=model_top_p,
@@ -88,9 +88,9 @@ def get_llm_instance():
             top_p=model_top_p,
             n_batch=model_n_batch,
             use_mlock=model_use_mlock,
-            n_threads=gpu_is_enabled if gpu_model_n_threads else cpu_model_n_threads,
+            n_threads=gpu_model_n_threads if gpu_is_enabled else cpu_model_n_threads,
             verbose=model_verbose,
-            n_gpu_layers=gpu_is_enabled if calculate_layer_count() else None,
+            n_gpu_layers=calculate_layer_count() if gpu_is_enabled else None,
             callbacks=callbacks,
         )
     elif model_type == "huggingface-local":
