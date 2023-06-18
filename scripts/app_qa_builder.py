@@ -59,7 +59,8 @@ def process_database_question(database_name, llm, collection_name: Optional[str]
     retriever = db.as_retriever(search_kwargs={"k": ingest_target_source_chunks if ingest_target_source_chunks else args.ingest_target_source_chunks})
 
     template = """You are a an AI assistant providing helpful advice. You are given the following extracted parts of a long document and a question.
-    Provide a conversational answer based on the context provided. If you can't find the answer in the context below, just say
+    Provide a conversational answer (about {answer_length} words) based on the context provided.
+    If you can't find the answer in the context below, just say
     "Hmm, I'm not sure." Don't try to make up an answer. If the question is not related to the context, politely respond
     that you are tuned to only answer questions that are related to the context.
 
@@ -68,13 +69,13 @@ def process_database_question(database_name, llm, collection_name: Optional[str]
     {context}
     =========
     Answer:"""
-    question_prompt = PromptTemplate(template=template, input_variables=["question", "context"])
+    question_prompt = PromptTemplate(template=template, input_variables=["question", "answer_length", "context"])
 
     qa = ConversationalRetrievalChain.from_llm(llm=llm, condense_question_prompt=question_prompt, retriever=retriever, chain_type="stuff", return_source_documents=not args.hide_source)
     return qa
 
 
-def process_query(qa: BaseRetrievalQA, query: str, chat_history, chromadb_get_only_relevant_docs: bool, translate_answer: bool):
+def process_query(qa: BaseRetrievalQA, query: str, answer_length: int, chat_history, chromadb_get_only_relevant_docs: bool, translate_answer: bool):
     try:
 
         if chromadb_get_only_relevant_docs:
@@ -83,9 +84,9 @@ def process_query(qa: BaseRetrievalQA, query: str, chat_history, chromadb_get_on
 
         if translate_q:
             query_en = GoogleTranslator(source=translate_dst, target=translate_src).translate(query)
-            res = qa({"question": query_en, "chat_history": chat_history})
+            res = qa({"question": query_en, "answer_length": answer_length, "chat_history": chat_history})
         else:
-            res = qa({"question": query, "chat_history": chat_history})
+            res = qa({"question": query, "answer_length": answer_length, "chat_history": chat_history})
 
         # Print the question
         print(f"\nQuestion: {query}\n")

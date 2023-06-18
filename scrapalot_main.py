@@ -16,7 +16,7 @@ from transformers import pipeline
 
 from scripts import app_logs
 from scripts.app_environment import model_type, openai_api_key, model_n_ctx, model_temperature, model_top_p, model_n_batch, model_use_mlock, model_verbose, \
-    huggingface_hub_key, args, db_get_only_relevant_docs, gpt4all_backend, model_path_or_id, gpu_is_enabled, cpu_model_n_threads, gpu_model_n_threads
+    huggingface_hub_key, args, db_get_only_relevant_docs, gpt4all_backend, model_path_or_id, gpu_is_enabled, cpu_model_n_threads, gpu_model_n_threads, model_n_answer_words
 from scripts.app_qa_builder import print_document_chunk, print_hyperlink, process_database_question, process_query
 from scripts.app_user_prompt import prompt
 
@@ -176,7 +176,7 @@ def main():
             qa = qa_list[i]
 
             print(f"\n\033[94mSeeking for answer from: [{selected_directory_list[i]}]. May take some minutes...\033[0m")
-            answer, docs = process_query(qa, query, chat_history, db_get_only_relevant_docs, translate_answer=True)
+            answer, docs = process_query(qa, query, model_n_answer_words, chat_history, db_get_only_relevant_docs, translate_answer=True)
             print(f"\033[94mTook {round(((monotonic() - start_time) / 60), 2)} min to process the answer!\n\033[0m")
 
             if isinstance(docs, Document):

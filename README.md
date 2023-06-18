@@ -37,7 +37,7 @@ INGEST_SOURCE_DIRECTORY: from where books will be parsed
 INGEST_EMBEDDINGS_MODEL: SentenceTransformers embeddings model name (see https://www.sbert.net/docs/pretrained_models.html)
 INGEST_CHUNK_SIZE: default chunk size of texts when performing an ingest
 INGEST_OVERLAP: default chunk overlap of texts when performing an ingest
-INGEST_TARGET_SOURCE_CHUNKS: The amount of chunks (sources) that will be used to answer a question
+INGEST_TARGET_SOURCE_CHUNKS: The amount of chunks (sources) that will be used to answer a question, defaults to 6 (decrese if you have less resources).
 
 MODEL_TYPE: supports llamacpp, gpt4all, openai, huggingface-local, huggingface-hub
 MODEL_ID_OR_PATH: Path to your gpt4all or llamacpp supported LLM
@@ -50,6 +50,7 @@ MODEL_N_BATCH:  The number of tokens in the prompt that are fed into the model a
 but the query may be very slow; a high value, on the other hand, speeds things up at the cost of higher memory usage.
 Optimal value differs a lot depending on the model (8 works well for GPT4All, and 1024 is better for LlamaCpp)
 MODEL_TOP_P: The top-p value to use for sampling.
+MODEL_ANSWER_N_WORDS: How many max words will be returned in the answer, defaults to 200 (decrese if you have less resources)
 
 TRANSLATE_QUESTION: Whether or not turn on translation of questionto english. Based on GoogleTranslate HTTP calls.
 TRANSLATE_ANSWER: Whether or not turn on translation of answers from english to your language

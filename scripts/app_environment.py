@@ -51,7 +51,7 @@ ingest_source_directory = os.environ.get('INGEST_SOURCE_DIRECTORY', 'source_docu
 ingest_embeddings_model = os.environ.get('INGEST_EMBEDDINGS_MODEL', 'all-MiniLM-L6-v2')
 ingest_chunk_size = int(os.environ.get("INGEST_CHUNK_SIZE", "1000"))
 ingest_chunk_overlap = int(os.environ.get("INGEST_OVERLAP", "100"))
-ingest_target_source_chunks = int(os.environ.get('INGEST_TARGET_SOURCE_CHUNKS', '4'))
+ingest_target_source_chunks = int(os.environ.get('INGEST_TARGET_SOURCE_CHUNKS', '6'))
 
 # Set the basic model settings
 model_type = os.environ.get("MODEL_TYPE", "llamacpp")
@@ -61,6 +61,7 @@ model_use_mlock = os.environ.get("MODEL_USE_MLOCK", "true") == "true"
 model_verbose = os.environ.get("MODEL_VERBOSE", "false") == "true"
 model_top_p = float(os.environ.get("MODEL_TOP_P", "0.9"))
 model_n_batch = int(os.environ.get('MODEL_N_BATCH', "1024"))
+model_n_answer_words = int(os.environ.get('MODEL_ANSWER_N_WORDS', "200"))
 
 # Settings specific for LLAMA
 model_path_or_id = os.environ.get("MODEL_ID_OR_PATH")
