@@ -58,10 +58,10 @@ def calculate_layer_count() -> None | int | float:
         return get_gpu_memory() // LAYER_SIZE_MB - LAYERS_TO_REDUCE
 
 
-def get_llm_instance(callback_handler: BaseCallbackHandler):
+def get_llm_instance(*callback_handler: BaseCallbackHandler):
     logging.debug(f"Initializing model...")
 
-    callbacks = [] if args.mute_stream else [callback_handler]
+    callbacks = [] if args.mute_stream else callback_handler
 
     if model_type == "gpt4all":
         if gpu_is_enabled:

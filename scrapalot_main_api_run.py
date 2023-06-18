@@ -16,7 +16,7 @@ from scripts.app_qa_builder import process_database_question, process_query
 
 sys.path.append(str(Path(sys.argv[0]).resolve().parent.parent))
 
-app = FastAPI()
+app = FastAPI(title="scrapalot-chat API")
 
 load_dotenv()
 
