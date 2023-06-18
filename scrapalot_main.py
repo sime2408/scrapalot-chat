@@ -6,6 +6,7 @@ from time import monotonic
 import torch
 from dotenv import load_dotenv
 from langchain import HuggingFacePipeline, HuggingFaceHub, LLMChain, PromptTemplate
+from langchain.callbacks.base import BaseCallbackHandler
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.llms import LlamaCpp, GPT4All, OpenAI
 from langchain.schema import Document
@@ -57,10 +58,10 @@ def calculate_layer_count() -> None | int | float:
         return get_gpu_memory() // LAYER_SIZE_MB - LAYERS_TO_REDUCE
 
 
-def get_llm_instance():
+def get_llm_instance(callback_handler: BaseCallbackHandler):
     logging.debug(f"Initializing model...")
 
-    callbacks = [] if args.mute_stream else [StreamingStdOutCallbackHandler()]
+    callbacks = [] if args.mute_stream else [callback_handler]
 
     if model_type == "gpt4all":
         if gpu_is_enabled:
@@ -135,7 +136,7 @@ def get_llm_instance():
 
 
 def main():
-    llm = get_llm_instance()
+    llm = get_llm_instance(StreamingStdOutCallbackHandler())
     if llm is None:
         logging.error("Could not initialize LLM instance.")
         return

@@ -6,7 +6,8 @@ from typing import List, Optional
 
 from deep_translator import GoogleTranslator
 from dotenv import load_dotenv, set_key
-from fastapi import UploadFile, FastAPI, Depends, Form, File
+from fastapi import UploadFile, FastAPI, Form, File, Depends
+from langchain.callbacks.streamlit import StreamlitCallbackHandler
 from pydantic import BaseModel
 
 from scrapalot_main import get_llm_instance
@@ -50,7 +51,7 @@ class LLM:
 
     def get_instance(self):
         if not self.instance:
-            self.instance = get_llm_instance()
+            self.instance = get_llm_instance(StreamlitCallbackHandler())
         return self.instance
 
 
@@ -153,7 +154,7 @@ async def query_documents(body: QueryBody, llm=Depends(get_llm)):
         if translate_q:
             question = GoogleTranslator(source=locale, target=translate_src).translate(question)
 
-        seeking_from = database_name + '/' + collection_name if collection_name else database_name
+        seeking_from = database_name + '/' + collection_name if collection_name and collection_name != database_name else database_name
         print(f"\n\033[94mSeeking for answer from: [{seeking_from}]. May take some minutes...\033[0m")
         qa = process_database_question(database_name, llm, collection_name)
         answer, docs = process_query(qa, question, model_n_answer_words, chat_history, chromadb_get_only_relevant_docs=False, translate_answer=False)
