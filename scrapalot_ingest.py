@@ -2,13 +2,14 @@
 import glob
 import os
 import sys
+from collections import defaultdict
 from multiprocessing import Pool
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from dotenv import set_key
 from langchain.docstore.document import Document
 from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter, Language
 from langchain.vectorstores import Chroma
 from tqdm import tqdm
 
@@ -56,6 +57,27 @@ def load_documents(source_dir: str, collection_name: Optional[str], ignored_file
     return results
 
 
+def get_language(file_extension: str) -> Language:
+    ext_to_lang = {
+        ".java": Language.JAVA,
+        ".js": Language.JS,
+        ".py": Language.PYTHON,
+        ".html": Language.HTML,
+    }
+
+    return ext_to_lang.get(file_extension)
+
+
+def split_documents(documents: list[Document]) -> Dict[Optional[Language], list[Document]]:
+    lang_to_docs = defaultdict(list)
+    for doc in documents:
+        file_extension = os.path.splitext(doc.metadata["source"])[1]
+        lang = get_language(file_extension)
+        lang_to_docs[lang].append(doc)  # Default to None if the file extension does not match any language
+
+    return lang_to_docs
+
+
 def process_documents(collection_name: Optional[str] = None, ignored_files: List[str] = []) -> List[Document]:
     """
     Load documents and split them into chunks.
@@ -66,11 +88,24 @@ def process_documents(collection_name: Optional[str] = None, ignored_files: List
         print("No new documents to load")
         exit(0)
     print(f"Loaded {len(documents)} new documents from {source_directory}")
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=ingest_chunk_size if ingest_chunk_size else args.ingest_chunk_size,
-        chunk_overlap=ingest_chunk_overlap if ingest_chunk_overlap else args.ingest_chunk_overlap
-    )
-    texts = text_splitter.split_documents(documents)
+
+    texts = []
+    for lang, docs in split_documents(documents).items():
+        if lang is None:
+            splitten_docs = RecursiveCharacterTextSplitter(
+                chunk_size=ingest_chunk_size if ingest_chunk_size else args.ingest_chunk_size,
+                chunk_overlap=ingest_chunk_overlap if ingest_chunk_overlap else args.ingest_chunk_overlap
+            ).split_documents(docs)
+        else:
+            print(f"Ingesting {lang} file:")
+            splitten_docs = RecursiveCharacterTextSplitter.from_language(
+                language=lang,
+                chunk_size=ingest_chunk_size if ingest_chunk_size else args.ingest_chunk_size,
+                chunk_overlap=ingest_chunk_overlap if ingest_chunk_overlap else args.ingest_chunk_overlap
+            ).split_documents(docs)
+
+        texts.extend(splitten_docs)
+
     print(f"Split into {len(texts)} chunks of text (max. {ingest_chunk_size} tokens each)")
     return texts
 
