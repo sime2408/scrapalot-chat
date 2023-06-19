@@ -17,7 +17,7 @@ def prompt():
     valid_input = False
 
     while not valid_input:
-        user_input = input("\n\033[94mEnter the index number of the database (q for quit): \033[0m")
+        user_input = input("\n\033[94mEnter the index number of the database, or more separated by comma (q for quit): \033[0m")
 
         # Check if the user wants to quit
         if user_input.strip().lower() == 'q':
