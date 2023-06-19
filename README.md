@@ -13,7 +13,7 @@ translations using Google Translate from 🌍 English 🏴󠁧󠁢󠁥󠁮󠁧�
 
 ## Discord server
 
-[scrapalot-chat](https://discord.gg/utemkDjw)
+[scrapalot-chat](https://discord.gg/983PUp6K)
 
 ## How is it working?
 
@@ -94,6 +94,13 @@ The supported extensions are:
 - `.ppt` : PowerPoint Document,
 - `.txt`: Text file (UTF-8),
 - `.json`: Text file (jq_schema),
+
+The Application also supports parsing code, for these file types:
+
+- `.py`: Python files,
+- `.java`: Java files,
+- `.js`: Java Script files,
+- `.html`: HTML files,
 
 #### Conda environment (recommended)
 
