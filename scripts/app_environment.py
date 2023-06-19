@@ -71,7 +71,7 @@ openai_api_key = os.environ.get("OPENAI_API_KEY")
 openai_use = os.environ.get("OPENAI_USE", "false") == "true"
 
 # Setting specific for Huggingface models
-huggingface_hub_key = os.environ.get("HUGGINGFACEHUB_API_TOKEN")
+huggingface_model_base_name = os.environ.get("MODEL_HF_BASE_NAME")
 
 # Setting specific for GPT4All (can be llama or gptj)
 gpt4all_backend = os.environ.get("GPT4ALL_BACKEND", "gptj")

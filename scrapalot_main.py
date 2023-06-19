@@ -4,20 +4,19 @@ import os
 from time import monotonic
 
 import torch
+from auto_gptq import AutoGPTQForCausalLM
 from dotenv import load_dotenv
-from langchain import HuggingFacePipeline, HuggingFaceHub, LLMChain, PromptTemplate
+from langchain import HuggingFacePipeline
 from langchain.callbacks.base import BaseCallbackHandler
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.llms import LlamaCpp, GPT4All, OpenAI
 from langchain.schema import Document
 from torch import cuda as torch_cuda
-from transformers import LlamaForCausalLM
-from transformers import LlamaTokenizer
-from transformers import pipeline
+from transformers import AutoTokenizer, AutoModelForCausalLM, LlamaTokenizer, LlamaForCausalLM, GenerationConfig, pipeline
 
 from scripts import app_logs
 from scripts.app_environment import model_type, openai_api_key, model_n_ctx, model_temperature, model_top_p, model_n_batch, model_use_mlock, model_verbose, \
-    huggingface_hub_key, args, db_get_only_relevant_docs, gpt4all_backend, model_path_or_id, gpu_is_enabled, cpu_model_n_threads, gpu_model_n_threads, model_n_answer_words
+    args, db_get_only_relevant_docs, gpt4all_backend, model_path_or_id, gpu_is_enabled, cpu_model_n_threads, gpu_model_n_threads, model_n_answer_words, huggingface_model_base_name
 from scripts.app_qa_builder import print_document_chunk, print_hyperlink, process_database_question, process_query
 from scripts.app_user_prompt import prompt
 
@@ -94,39 +93,46 @@ def get_llm_instance(*callback_handler: BaseCallbackHandler):
             n_gpu_layers=calculate_layer_count() if gpu_is_enabled else None,
             callbacks=callbacks,
         )
-    elif model_type == "huggingface-local":
+    elif model_type == "huggingface":
+        if gpu_is_enabled and huggingface_model_base_name is not None:
+            logging.info("Tokenizer loaded")
+            tokenizer = AutoTokenizer.from_pretrained(model_path_or_id, use_fast=True)
+            model = AutoGPTQForCausalLM.from_quantized(
+                model_name_or_path=model_path_or_id,
+                model_basename=huggingface_model_base_name if ".safetensors" not in huggingface_model_base_name else huggingface_model_base_name.replace(".safetensors", ""),
+                use_safetensors=True,
+                trust_remote_code=True,
+                device="cuda:0",
+                use_triton=False,
+                quantize_config=None,
+            )
+        elif gpu_is_enabled:
+            logging.info("Using AutoModelForCausalLM for full models")
+            tokenizer = AutoTokenizer.from_pretrained(model_path_or_id)
+            model = AutoModelForCausalLM.from_pretrained(
+                model_path_or_id,
+                device_map="auto",
+                torch_dtype=torch.float16,
+                low_cpu_mem_usage=True,
+                trust_remote_code=True,
+                # max_memory={0: "15GB"} # Uncomment this line if you encounter CUDA out of memory errors
+            )
+            model.tie_weights()
+        else:
+            logging.info("Using LlamaTokenizer")
+            tokenizer = LlamaTokenizer.from_pretrained(model_path_or_id)
+            model = LlamaForCausalLM.from_pretrained(model_path_or_id)
+
         return HuggingFacePipeline(pipeline=pipeline(
             "text-generation",
-            model=LlamaForCausalLM.from_pretrained(
-                model_path_or_id,
-                load_in_8bit=gpu_is_enabled if gpu_is_enabled else False,
-                device_map={
-                    '': 'cuda' if gpu_is_enabled else 'cpu',
-                    'transformer': 'cuda' if gpu_is_enabled else 'cpu',
-                    'lm_head': 'cuda' if gpu_is_enabled else 'cpu',
-                },  # if GPU: device_map='auto',
-                torch_dtype=torch.float16 if gpu_is_enabled else torch.float32,
-                low_cpu_mem_usage=True
-            ),
-            tokenizer=LlamaTokenizer.from_pretrained(model_path_or_id),
+            model=model,
+            tokenizer=tokenizer,
             max_length=2048,
-            temperature=model_temperature,
+            temperature=0,
             top_p=model_top_p,
-            repetition_penalty=1.15
+            repetition_penalty=1.15,
+            generation_config=GenerationConfig.from_pretrained(model_path_or_id),
         ))
-    elif model_type == "huggingface-hub":
-        return LLMChain(
-            prompt=PromptTemplate(template="""<|prompter|>{question}<|endoftext|><|assistant|>""", input_variables=["question"]),
-            llm=HuggingFaceHub(
-                repo_id=model_path_or_id,
-                huggingfacehub_api_token=huggingface_hub_key
-            ),
-        )
-    #     return HuggingFaceHub(
-    #         repo_id=model_path_or_id,
-    #         task="summarization",
-    #         huggingfacehub_api_token=huggingface_hub_key,
-    #         model_kwargs={"temperature": model_temperature, "max_length": 1000})
     elif model_type == "openai":
         assert openai_api_key is not None, "Set ENV OPENAI_API_KEY, Get one here: https://platform.openai.com/account/api-keys"
         return OpenAI(openai_api_key=openai_api_key, callbacks=callbacks)
@@ -137,10 +143,12 @@ def get_llm_instance(*callback_handler: BaseCallbackHandler):
 
 def main():
     llm = get_llm_instance(StreamingStdOutCallbackHandler())
+
     if llm is None:
         logging.error("Could not initialize LLM instance.")
         return
 
+    logging.info(f"Running on: {'cuda' if gpu_is_enabled else 'cpu'}")
     selected_directory_list = prompt()
 
     # Initialize a chat history list

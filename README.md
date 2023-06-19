@@ -39,7 +39,7 @@ INGEST_CHUNK_SIZE: default chunk size of texts when performing an ingest
 INGEST_OVERLAP: default chunk overlap of texts when performing an ingest
 INGEST_TARGET_SOURCE_CHUNKS: The amount of chunks (sources) that will be used to answer a question, defaults to 6 (decrese if you have less resources).
 
-MODEL_TYPE: supports llamacpp, gpt4all, openai, huggingface-local, huggingface-hub
+MODEL_TYPE: supports llamacpp, gpt4all, openai, huggingface
 MODEL_ID_OR_PATH: Path to your gpt4all or llamacpp supported LLM
 MODEL_N_CTX: Token context window. Maximum token limit for the LLM model
 MODEL_TEMPERATURE: Temperature between 0.0 & 1.0. If 0 it will return exact answers from the books
@@ -162,7 +162,7 @@ MODEL_TYPE=llamacpp
 MODEL_ID_OR_PATH=models/vicuna-13b-1.1.ggmlv3.q6_K.bin
 ```
 
-Supported `MODEL_TYPE` are: `llamacpp, gpt4all, openai, huggingface-local, huggingface-hub`.
+Supported `MODEL_TYPE` are: `llamacpp, gpt4all, openai, huggingface`.
 If you choose `openai`, you have to set `OPENAI_API_KEY` env variable.
 
 ## LLM Models
@@ -177,11 +177,7 @@ LLM models tested and placed under `models` directory:
 - `llamacpp`: [ggml-vicuna-13b-1.1](https://huggingface.co/vicuna/ggml-vicuna-13b-1.1/tree/main)
 - `llamacpp`: [koala-7B.ggmlv3.q8_0.bin](https://huggingface.co/TheBloke/koala-7B-GGML/tree/main)
 - `openai`: Uses OpenAI API and `gpt-4` model
-- `huggingface-local`: [TheBloke/guanaco-7B-HF](https://huggingface.co/TheBloke/guanaco-7B-HF)
-- `huggingface-hub`: **Not yet implemented!**
-
-| **NOTE**: huggingface-local & huggingface-hub are under development** |
-|-----------------------------------------------------------------------|
+- `huggingface`: [TheBloke/guanaco-7B-HF](https://huggingface.co/TheBloke/guanaco-7B-HF)
 
 ### How to select different LLM models?
 
