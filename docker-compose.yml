@@ -48,8 +48,8 @@ services:
     ports:
       - "8501:8501"
     environment:
-      - API_BASE_URL=http://scrapalot-chat-api:8080
-      # - API_BASE_URL=http://scrapalot-chat-api:8080
+      - API_BASE_URL=http://scrapalot-chat-api:8080/api
+      # - API_BASE_URL=http://scrapalot-chat-api:8080/api
       - OS_RUNNING_ENVIRONMENT=linux
       - INGEST_PERSIST_DIRECTORY=db
       - INGEST_EMBEDDINGS_MODEL=all-MiniLM-L6-v2

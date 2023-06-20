@@ -6,8 +6,8 @@ from typing import List, Optional
 
 from deep_translator import GoogleTranslator
 from dotenv import load_dotenv, set_key
-from fastapi import UploadFile, FastAPI, Form, File, Depends
-from langchain.callbacks.streamlit import StreamlitCallbackHandler
+from fastapi import FastAPI, Depends, HTTPException, Query, Request
+from langchain.callbacks import StreamingStdOutCallbackHandler
 from pydantic import BaseModel
 
 from scrapalot_main import get_llm_instance
@@ -20,20 +20,10 @@ app = FastAPI(title="scrapalot-chat API")
 
 load_dotenv()
 
-# Initialize a chat history list
-chat_history = []
 
-
-class ScrapalotErrorResponse(BaseModel):
-    status_code: int
-    error: str
-
-
-class UploadFileBody(BaseModel):
-    database_name: str
-    files: List[UploadFile]
-
-
+###############################################################################
+# model classes
+###############################################################################
 class QueryBody(BaseModel):
     database_name: str
     collection_name: str
@@ -45,16 +35,31 @@ class TranslationBody(BaseModel):
     locale: str
 
 
+class SourceDirectoryFile(BaseModel):
+    name: str
+    path: str
+
+
+class SourceDirectory(BaseModel):
+    name: str
+    path: str
+    files: List[SourceDirectoryFile] = []
+
+
 class LLM:
     def __init__(self):
         self.instance = None
 
     def get_instance(self):
         if not self.instance:
-            self.instance = get_llm_instance(StreamlitCallbackHandler())
+            self.instance = get_llm_instance(StreamingStdOutCallbackHandler())
         return self.instance
 
 
+###############################################################################
+# init
+###############################################################################
+chat_history = []
 llm_manager = LLM()
 
 
@@ -62,6 +67,10 @@ llm_manager = LLM()
 async def startup_event():
     llm_manager.get_instance()
 
+
+###############################################################################
+# helper functions
+###############################################################################
 
 def get_llm():
     return llm_manager.get_instance()
@@ -72,9 +81,15 @@ def list_of_collections(database_name: str):
     return client.list_collections()
 
 
-@app.get("/")
-async def root():
-    return {"ping": "pong!"}
+def get_files_from_dir(directory: str, page: int, items_per_page: int):
+    all_files = []
+    for root, dirs, files in os.walk(directory):
+        for file in sorted(files):  # Added sorting here.
+            if not file.startswith('.'):
+                all_files.append(SourceDirectoryFile(name=file, path=os.path.join(root, file)))
+    start = (page - 1) * items_per_page
+    end = start + items_per_page
+    return all_files[start:end]
 
 
 def run_ingest(database_name: str, collection_name: Optional[str] = None):
@@ -86,7 +101,15 @@ def run_ingest(database_name: str, collection_name: Optional[str] = None):
                         "--ingest-dbname", database_name, "--collection", collection_name], check=True)
 
 
-@app.post("/set-translation")
+###############################################################################
+# API
+###############################################################################
+@app.get("/api")
+async def root():
+    return {"ping": "pong!"}
+
+
+@app.post("/api/set-translation")
 async def set_translation(body: TranslationBody):
     locale = body.locale
     set_key('.env', 'TRANSLATE_DST_LANG', locale)
@@ -95,34 +118,7 @@ async def set_translation(body: TranslationBody):
     set_key('.env', 'TRANSLATE_DOCS', 'true')
 
 
-@app.post("/upload")
-async def upload_documents(database_name: str = Form(...), collection_name: str = Form(None), files: List[UploadFile] = File(...)):
-    saved_files = []
-    source_documents = './source_documents'
-    try:
-        for file in files:
-            if collection_name and database_name != collection_name:
-                file_path = os.path.join(source_documents, database_name, collection_name, file.filename)
-            else:
-                file_path = os.path.join(source_documents, database_name, file.filename)
-
-            saved_files.append(file_path)
-            with open(file_path, "wb") as f:
-                f.write(await file.read())
-
-            run_ingest(database_name, collection_name)
-
-            response = {
-                'message': "OK",
-                'files': saved_files,
-                "database_name": database_name
-            }
-            return response
-    except Exception as e:
-        return ScrapalotErrorResponse(status_code=500, error=str(e))
-
-
-@app.get('/databases')
+@app.get('/api/databases')
 async def get_database_names_and_collections():
     base_dir = "./db"
     try:
@@ -140,10 +136,31 @@ async def get_database_names_and_collections():
 
         return database_info
     except Exception as e:
-        return ScrapalotErrorResponse(status_code=500, error=str(e))
+        return HTTPException(status_code=500, detail=str(e))
 
 
-@app.post('/query')
+@app.get("/api/directories", response_model=List[SourceDirectory])
+async def read_directories():
+    base_dir = "./source_documents"
+    directories = []
+    for directory in os.listdir(base_dir):
+        dir_path = os.path.join(base_dir, directory)
+        if os.path.isdir(dir_path):
+            directories.append(SourceDirectory(name=directory, path=dir_path))
+    return directories
+
+
+@app.get("/api/directory/{directory}", response_model=SourceDirectory)
+async def read_files(directory: str, page: int = Query(1, ge=1), items_per_page: int = Query(10, ge=1)):
+    base_dir = "./source_documents"
+    source_directory = os.path.join(base_dir, directory)
+    if not os.path.exists(source_directory) or not os.path.isdir(source_directory):
+        raise HTTPException(status_code=404, detail="Directory not found")
+    files = get_files_from_dir(source_directory, page, items_per_page)
+    return SourceDirectory(name=directory, path=source_directory, files=files)
+
+
+@app.post('/api/query')
 async def query_documents(body: QueryBody, llm=Depends(get_llm)):
     database_name = body.database_name
     collection_name = body.collection_name
@@ -179,7 +196,46 @@ async def query_documents(body: QueryBody, llm=Depends(get_llm)):
         }
         return response
     except Exception as e:
-        return ScrapalotErrorResponse(status_code=500, error=str(e))
+        return HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/upload")
+async def upload_documents(request: Request):
+    form = await request.form()
+    database_name = form['database_name']
+    collection_name = form.get('collection_name')  # Optional field
+
+    files = form["files"]  # get files from form data
+
+    # make sure files is a list
+    if not isinstance(files, list):
+        files = [files]
+
+    saved_files = []
+    source_documents = './source_documents'
+    try:
+        for file in files:
+            content = await file.read()  # read file content
+            if collection_name and database_name != collection_name:
+                file_path = os.path.join(source_documents, database_name, collection_name, file.filename)
+            else:
+                file_path = os.path.join(source_documents, database_name, file.filename)
+
+            saved_files.append(file_path)
+            with open(file_path, "wb") as f:
+                f.write(content)
+
+            # assuming run_ingest is defined elsewhere
+            run_ingest(database_name, collection_name)
+
+            response = {
+                'message': "OK",
+                'files': saved_files,
+                "database_name": database_name
+            }
+            return response
+    except Exception as e:
+        return HTTPException(status_code=500, detail=str(e))
 
 
 # commented out, because we use web UI
@@ -188,5 +244,6 @@ if __name__ == "__main__":
 
     host = '0.0.0.0'
     port = 8080
-    print(f"Scrapalot API is now available at http://{host}:{port}/")
+    path = 'api'
+    print(f"Scrapalot API is now available at http://{host}:{port}/{path}")
     uvicorn.run(app, host=host, port=port)
