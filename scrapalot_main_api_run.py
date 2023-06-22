@@ -1,6 +1,8 @@
 import os
 import subprocess
 import sys
+import urllib
+import uuid
 from pathlib import Path
 from typing import List, Optional
 
@@ -9,6 +11,7 @@ from dotenv import load_dotenv, set_key
 from fastapi import FastAPI, Depends, HTTPException, Query, Request
 from langchain.callbacks import StreamingStdOutCallbackHandler
 from pydantic import BaseModel
+from starlette.middleware.cors import CORSMiddleware
 
 from scrapalot_main import get_llm_instance
 from scripts.app_environment import translate_docs, translate_src, translate_q, chromaDB_manager, translate_a, model_n_answer_words
@@ -17,6 +20,17 @@ from scripts.app_qa_builder import process_database_question, process_query
 sys.path.append(str(Path(sys.argv[0]).resolve().parent.parent))
 
 app = FastAPI(title="scrapalot-chat API")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
+allow_origins = ["http://localhost:3000", "https://scrapalot.com"]
 
 load_dotenv()
 
@@ -35,15 +49,15 @@ class TranslationBody(BaseModel):
     locale: str
 
 
+class SourceDirectoryDatabase(BaseModel):
+    name: str
+    path: str
+
+
 class SourceDirectoryFile(BaseModel):
+    id: str
     name: str
     path: str
-
-
-class SourceDirectory(BaseModel):
-    name: str
-    path: str
-    files: List[SourceDirectoryFile] = []
 
 
 class LLM:
@@ -81,12 +95,14 @@ def list_of_collections(database_name: str):
     return client.list_collections()
 
 
-def get_files_from_dir(directory: str, page: int, items_per_page: int):
+def get_files_from_dir(database: str, page: int, items_per_page: int) -> List[SourceDirectoryFile]:
     all_files = []
-    for root, dirs, files in os.walk(directory):
+    for root, dirs, files in os.walk(database):
         for file in sorted(files):  # Added sorting here.
             if not file.startswith('.'):
-                all_files.append(SourceDirectoryFile(name=file, path=os.path.join(root, file)))
+                filepath = os.path.join(root, file)
+                url_path = f"file://{urllib.parse.quote(filepath)}"
+                all_files.append(SourceDirectoryFile(id=str(uuid.uuid4()), name=file, path=url_path))
     start = (page - 1) * items_per_page
     end = start + items_per_page
     return all_files[start:end]
@@ -139,25 +155,38 @@ async def get_database_names_and_collections():
         return HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/directories", response_model=List[SourceDirectory])
-async def read_directories():
+@app.get("/api/databases", response_model=List[SourceDirectoryDatabase])
+async def get_database_documents():
     base_dir = "./source_documents"
     directories = []
     for directory in os.listdir(base_dir):
         dir_path = os.path.join(base_dir, directory)
         if os.path.isdir(dir_path):
-            directories.append(SourceDirectory(name=directory, path=dir_path))
+            directories.append(SourceDirectoryDatabase(id=str(uuid.uuid4()), name=directory, path=dir_path))
     return directories
 
 
-@app.get("/api/directory/{directory}", response_model=SourceDirectory)
-async def read_files(directory: str, page: int = Query(1, ge=1), items_per_page: int = Query(10, ge=1)):
+@app.get("/api/database/{database_name}", response_model=List[SourceDirectoryFile])
+async def read_files(database_name: str, page: int = Query(1, ge=1), items_per_page: int = Query(10, ge=1)):
     base_dir = "./source_documents"
-    source_directory = os.path.join(base_dir, directory)
-    if not os.path.exists(source_directory) or not os.path.isdir(source_directory):
-        raise HTTPException(status_code=404, detail="Directory not found")
-    files = get_files_from_dir(source_directory, page, items_per_page)
-    return SourceDirectory(name=directory, path=source_directory, files=files)
+    absolute_base_dir = os.path.abspath(base_dir)
+    database_dir = os.path.join(absolute_base_dir, database_name)
+    if not os.path.exists(database_dir) or not os.path.isdir(database_dir):
+        raise HTTPException(status_code=404, detail="Database not found")
+
+    files = get_files_from_dir(database_dir, page, items_per_page)
+    return files
+
+
+@app.get("/api/database/{database_name}/collection/{collection_name}", response_model=List[SourceDirectoryFile])
+async def get_collection_files(database_name: str, collection_name: str, page: int = Query(1, ge=1), items_per_page: int = Query(10, ge=1)):
+    base_dir = "./source_documents"
+    absolute_base_dir = os.path.abspath(base_dir)
+    collection_dir = os.path.join(absolute_base_dir, database_name, collection_name)
+    if not os.path.exists(collection_dir) or not os.path.isdir(collection_dir):
+        raise HTTPException(status_code=404, detail="Collection not found")
+    files = get_files_from_dir(collection_dir, page, items_per_page)
+    return files
 
 
 @app.post('/api/query')
