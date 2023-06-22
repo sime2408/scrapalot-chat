@@ -101,7 +101,7 @@ def get_files_from_dir(database: str, page: int, items_per_page: int) -> List[So
         for file in sorted(files):  # Added sorting here.
             if not file.startswith('.'):
                 filepath = os.path.join(root, file)
-                url_path = f"file://{urllib.parse.quote(filepath)}"
+                url_path = f"{urllib.parse.quote(filepath)}"
                 all_files.append(SourceDirectoryFile(id=str(uuid.uuid4()), name=file, path=url_path))
     start = (page - 1) * items_per_page
     end = start + items_per_page
@@ -169,8 +169,7 @@ async def get_database_documents():
 @app.get("/api/database/{database_name}", response_model=List[SourceDirectoryFile])
 async def read_files(database_name: str, page: int = Query(1, ge=1), items_per_page: int = Query(10, ge=1)):
     base_dir = "./source_documents"
-    absolute_base_dir = os.path.abspath(base_dir)
-    database_dir = os.path.join(absolute_base_dir, database_name)
+    database_dir = os.path.join(base_dir, database_name)
     if not os.path.exists(database_dir) or not os.path.isdir(database_dir):
         raise HTTPException(status_code=404, detail="Database not found")
 
@@ -181,8 +180,7 @@ async def read_files(database_name: str, page: int = Query(1, ge=1), items_per_p
 @app.get("/api/database/{database_name}/collection/{collection_name}", response_model=List[SourceDirectoryFile])
 async def get_collection_files(database_name: str, collection_name: str, page: int = Query(1, ge=1), items_per_page: int = Query(10, ge=1)):
     base_dir = "./source_documents"
-    absolute_base_dir = os.path.abspath(base_dir)
-    collection_dir = os.path.join(absolute_base_dir, database_name, collection_name)
+    collection_dir = os.path.join(base_dir, database_name, collection_name)
     if not os.path.exists(collection_dir) or not os.path.isdir(collection_dir):
         raise HTTPException(status_code=404, detail="Collection not found")
     files = get_files_from_dir(collection_dir, page, items_per_page)
