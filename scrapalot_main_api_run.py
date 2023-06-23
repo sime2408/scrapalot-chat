@@ -12,12 +12,18 @@ from fastapi import FastAPI, Depends, HTTPException, Query, Request
 from langchain.callbacks import StreamingStdOutCallbackHandler
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import FileResponse
 
 from scrapalot_main import get_llm_instance
 from scripts.app_environment import translate_docs, translate_src, translate_q, chromaDB_manager, translate_a, model_n_answer_words
 from scripts.app_qa_builder import process_database_question, process_query
 
 sys.path.append(str(Path(sys.argv[0]).resolve().parent.parent))
+
+scheme = "http"
+hostname = "127.0.0.1"
+port = "8080"
+server_url = f'{scheme}://{hostname}:{port}'
 
 app = FastAPI(title="scrapalot-chat API")
 
@@ -97,11 +103,12 @@ def list_of_collections(database_name: str):
 
 def get_files_from_dir(database: str, page: int, items_per_page: int) -> List[SourceDirectoryFile]:
     all_files = []
+
     for root, dirs, files in os.walk(database):
         for file in sorted(files):  # Added sorting here.
             if not file.startswith('.'):
                 filepath = os.path.join(root, file)
-                url_path = f"{urllib.parse.quote(filepath)}"
+                url_path = f"{server_url}/api/database/file/{urllib.parse.quote(filepath)}"
                 all_files.append(SourceDirectoryFile(id=str(uuid.uuid4()), name=file, path=url_path))
     start = (page - 1) * items_per_page
     end = start + items_per_page
@@ -169,7 +176,8 @@ async def get_database_documents():
 @app.get("/api/database/{database_name}", response_model=List[SourceDirectoryFile])
 async def read_files(database_name: str, page: int = Query(1, ge=1), items_per_page: int = Query(10, ge=1)):
     base_dir = "./source_documents"
-    database_dir = os.path.join(base_dir, database_name)
+    absolute_base_dir = os.path.abspath(base_dir)
+    database_dir = os.path.join(absolute_base_dir, database_name)
     if not os.path.exists(database_dir) or not os.path.isdir(database_dir):
         raise HTTPException(status_code=404, detail="Database not found")
 
@@ -180,11 +188,20 @@ async def read_files(database_name: str, page: int = Query(1, ge=1), items_per_p
 @app.get("/api/database/{database_name}/collection/{collection_name}", response_model=List[SourceDirectoryFile])
 async def get_collection_files(database_name: str, collection_name: str, page: int = Query(1, ge=1), items_per_page: int = Query(10, ge=1)):
     base_dir = "./source_documents"
-    collection_dir = os.path.join(base_dir, database_name, collection_name)
+    absolute_base_dir = os.path.abspath(base_dir)
+    collection_dir = os.path.join(absolute_base_dir, database_name, collection_name)
     if not os.path.exists(collection_dir) or not os.path.isdir(collection_dir):
         raise HTTPException(status_code=404, detail="Collection not found")
     files = get_files_from_dir(collection_dir, page, items_per_page)
     return files
+
+
+@app.get("/api/database/file/{file_path:path}")
+async def read_file(file_path: str):
+    absolute_file_path = os.path.abspath(file_path)
+    if not os.path.exists(absolute_file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(absolute_file_path)
 
 
 @app.post('/api/query')
@@ -270,7 +287,6 @@ if __name__ == "__main__":
     import uvicorn
 
     host = '0.0.0.0'
-    port = 8080
     path = 'api'
-    print(f"Scrapalot API is now available at http://{host}:{port}/{path}")
-    uvicorn.run(app, host=host, port=port)
+    print(f"Scrapalot API is now available at {scheme}://{host}:{port}/{path}")
+    uvicorn.run(app, host=host, port=int(port))
