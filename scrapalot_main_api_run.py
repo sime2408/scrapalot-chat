@@ -1,10 +1,10 @@
 import os
 import subprocess
 import sys
-import urllib
 import uuid
 from pathlib import Path
 from typing import List, Optional
+from urllib.parse import unquote
 
 from deep_translator import GoogleTranslator
 from dotenv import load_dotenv, set_key
@@ -63,7 +63,6 @@ class SourceDirectoryDatabase(BaseModel):
 class SourceDirectoryFile(BaseModel):
     id: str
     name: str
-    path: str
 
 
 class LLM:
@@ -107,9 +106,7 @@ def get_files_from_dir(database: str, page: int, items_per_page: int) -> List[So
     for root, dirs, files in os.walk(database):
         for file in sorted(files):  # Added sorting here.
             if not file.startswith('.'):
-                filepath = os.path.join(root, file)
-                url_path = f"{server_url}/api/database/file/{urllib.parse.quote(filepath)}"
-                all_files.append(SourceDirectoryFile(id=str(uuid.uuid4()), name=file, path=url_path))
+                all_files.append(SourceDirectoryFile(id=str(uuid.uuid4()), name=file))
     start = (page - 1) * items_per_page
     end = start + items_per_page
     return all_files[start:end]
@@ -162,19 +159,8 @@ async def get_database_names_and_collections():
         return HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/databases", response_model=List[SourceDirectoryDatabase])
-async def get_database_documents():
-    base_dir = "./source_documents"
-    directories = []
-    for directory in os.listdir(base_dir):
-        dir_path = os.path.join(base_dir, directory)
-        if os.path.isdir(dir_path):
-            directories.append(SourceDirectoryDatabase(id=str(uuid.uuid4()), name=directory, path=dir_path))
-    return directories
-
-
 @app.get("/api/database/{database_name}", response_model=List[SourceDirectoryFile])
-async def read_files(database_name: str, page: int = Query(1, ge=1), items_per_page: int = Query(10, ge=1)):
+async def get_database_files(database_name: str, page: int = Query(1, ge=1), items_per_page: int = Query(10, ge=1)):
     base_dir = "./source_documents"
     absolute_base_dir = os.path.abspath(base_dir)
     database_dir = os.path.join(absolute_base_dir, database_name)
@@ -186,7 +172,7 @@ async def read_files(database_name: str, page: int = Query(1, ge=1), items_per_p
 
 
 @app.get("/api/database/{database_name}/collection/{collection_name}", response_model=List[SourceDirectoryFile])
-async def get_collection_files(database_name: str, collection_name: str, page: int = Query(1, ge=1), items_per_page: int = Query(10, ge=1)):
+async def get_database_collection_files(database_name: str, collection_name: str, page: int = Query(1, ge=1), items_per_page: int = Query(10, ge=1)):
     base_dir = "./source_documents"
     absolute_base_dir = os.path.abspath(base_dir)
     collection_dir = os.path.join(absolute_base_dir, database_name, collection_name)
@@ -196,16 +182,22 @@ async def get_collection_files(database_name: str, collection_name: str, page: i
     return files
 
 
-@app.get("/api/database/file/{file_path:path}")
-async def read_file(file_path: str):
-    absolute_file_path = os.path.abspath(file_path)
+@app.get("/api/database/{database_name}/file/{file_name}")
+async def get_database_file(database_name: str, file_name: str):
+    base_dir = "./source_documents"
+    absolute_base_dir = os.path.abspath(base_dir)
+    database_dir = os.path.join(absolute_base_dir, database_name)
+    if not os.path.exists(database_dir) or not os.path.isdir(database_dir):
+        raise HTTPException(status_code=404, detail="Database not found")
+
+    absolute_file_path = os.path.join(database_dir, unquote(file_name))
     if not os.path.exists(absolute_file_path):
         raise HTTPException(status_code=404, detail="File not found")
     return FileResponse(absolute_file_path)
 
 
 @app.post('/api/query')
-async def query_documents(body: QueryBody, llm=Depends(get_llm)):
+async def query_files(body: QueryBody, llm=Depends(get_llm)):
     database_name = body.database_name
     collection_name = body.collection_name
     question = body.question
@@ -244,7 +236,7 @@ async def query_documents(body: QueryBody, llm=Depends(get_llm)):
 
 
 @app.post("/api/upload")
-async def upload_documents(request: Request):
+async def upload_files(request: Request):
     form = await request.form()
     database_name = form['database_name']
     collection_name = form.get('collection_name')  # Optional field
