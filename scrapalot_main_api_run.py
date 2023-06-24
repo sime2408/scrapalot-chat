@@ -8,6 +8,7 @@ from urllib.parse import unquote
 
 import ebooklib
 import mammoth
+from bs4 import BeautifulSoup
 from deep_translator import GoogleTranslator
 from dotenv import load_dotenv, set_key
 from ebooklib import epub
@@ -128,7 +129,6 @@ def docx_to_html(docx_path):
     with open(docx_path, "rb") as docx_file:
         result = mammoth.convert_to_html(docx_file)
         html = result.value  # The generated HTML
-        print(result.messages)  # Any messages, such as warnings during conversion
     return html
 
 
@@ -136,7 +136,10 @@ def epub_to_html(epub_path):
     book = epub.read_epub(epub_path)
     html = "<html><body>"
     for item in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
-        html += item.get_content().decode("utf-8")
+        soup = BeautifulSoup(item.get_content().decode("utf-8"), 'html.parser')
+        for img in soup.find_all('img'):
+            img.decompose()
+        html += str(soup)
     html += "</body></html>"
     return html
 
