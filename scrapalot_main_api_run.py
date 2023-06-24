@@ -3,16 +3,19 @@ import subprocess
 import sys
 import uuid
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 from urllib.parse import unquote
 
+import ebooklib
+import mammoth
 from deep_translator import GoogleTranslator
 from dotenv import load_dotenv, set_key
+from ebooklib import epub
 from fastapi import FastAPI, Depends, HTTPException, Query, Request
 from langchain.callbacks import StreamingStdOutCallbackHandler
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, HTMLResponse
 
 from scrapalot_main import get_llm_instance
 from scripts.app_environment import translate_docs, translate_src, translate_q, chromaDB_manager, translate_a, model_n_answer_words
@@ -121,6 +124,23 @@ def run_ingest(database_name: str, collection_name: Optional[str] = None):
                         "--ingest-dbname", database_name, "--collection", collection_name], check=True)
 
 
+def docx_to_html(docx_path):
+    with open(docx_path, "rb") as docx_file:
+        result = mammoth.convert_to_html(docx_file)
+        html = result.value  # The generated HTML
+        print(result.messages)  # Any messages, such as warnings during conversion
+    return html
+
+
+def epub_to_html(epub_path):
+    book = epub.read_epub(epub_path)
+    html = "<html><body>"
+    for item in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
+        html += item.get_content().decode("utf-8")
+    html += "</body></html>"
+    return html
+
+
 ###############################################################################
 # API
 ###############################################################################
@@ -182,8 +202,8 @@ async def get_database_collection_files(database_name: str, collection_name: str
     return files
 
 
-@app.get("/api/database/{database_name}/file/{file_name}")
-async def get_database_file(database_name: str, file_name: str):
+@app.get("/api/database/{database_name}/file/{file_name}", response_model=None)
+async def get_database_file(database_name: str, file_name: str) -> Union[HTMLResponse, FileResponse]:
     base_dir = "./source_documents"
     absolute_base_dir = os.path.abspath(base_dir)
     database_dir = os.path.join(absolute_base_dir, database_name)
@@ -193,7 +213,17 @@ async def get_database_file(database_name: str, file_name: str):
     absolute_file_path = os.path.join(database_dir, unquote(file_name))
     if not os.path.exists(absolute_file_path):
         raise HTTPException(status_code=404, detail="File not found")
-    return FileResponse(absolute_file_path)
+
+    file_extension = os.path.splitext(absolute_file_path)[-1].lower()
+
+    if file_extension == ".docx":
+        html = docx_to_html(absolute_file_path)
+        return HTMLResponse(content=html, status_code=200)
+    elif file_extension == ".epub":
+        html = epub_to_html(absolute_file_path)
+        return HTMLResponse(content=html, status_code=200)
+    else:
+        return FileResponse(absolute_file_path)
 
 
 @app.post('/api/query')
@@ -280,5 +310,8 @@ if __name__ == "__main__":
 
     host = '0.0.0.0'
     path = 'api'
+    # cert_path = "cert/cert.pem"
+    # key_path = "cert/key.pem"
     print(f"Scrapalot API is now available at {scheme}://{host}:{port}/{path}")
     uvicorn.run(app, host=host, port=int(port))
+    # uvicorn.run(app, host=host, port=int(port), ssl_keyfile=key_path, ssl_certfile=cert_path)

@@ -32,3 +32,5 @@ streamlit-chat==0.0.2.2
 streamlit-option-menu==0.3.6
 psutil==5.9.5; sys_platform != 'darwin'
 comtypes==1.2.0; sys_platform == 'linux' or sys_platform == 'linux2'  or sys_platform == 'linux3'
+mammoth==1.6.0
+ebooklib==0.18
