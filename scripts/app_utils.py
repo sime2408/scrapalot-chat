@@ -123,7 +123,19 @@ def display_directories():
     :return: The list of existing directories.
     """
     base_dir = "./source_documents"
-    directories = display_source_directories(base_dir)
+    directories = []
+
+    # Fetch directories and subdirectories
+    for dirpath, dirnames, filenames in os.walk(base_dir):
+        # Ignore base directory
+        if dirpath == base_dir:
+            for dirname in sorted(dirnames):  # Sort directories
+                directories.append(dirname)
+        else:
+            # Ignore subdirectories of subdirectories
+            if os.path.dirname(dirpath) == base_dir:
+                for dirname in sorted(dirnames):  # Sort subdirectories
+                    directories.append(f"{os.path.basename(dirpath)}/{dirname}")
 
     # Calculate the number of rows needed based on the number of directories
     num_rows = math.ceil(len(directories) / cli_column_number)
