@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import asyncio
 import logging
 import os
 from time import monotonic
@@ -141,7 +142,7 @@ def get_llm_instance(*callback_handler: BaseCallbackHandler):
         raise Exception(f"Model type {model_type} is not supported. Please choose one of the following: LlamaCpp, GPT4All")
 
 
-def main():
+async def main():
     llm = get_llm_instance(StreamingStdOutCallbackHandler())
 
     if llm is None:
@@ -202,4 +203,5 @@ def main():
 if __name__ == "__main__":
     app_logs.initialize_logging()
 
-    main()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())

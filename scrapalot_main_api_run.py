@@ -54,6 +54,7 @@ class QueryBody(BaseModel):
     database_name: str
     collection_name: str
     question: str
+    translate_chunks: bool = True
     locale: str
 
 
@@ -239,6 +240,7 @@ async def query_files(body: QueryBody, llm=Depends(get_llm)):
     collection_name = body.collection_name
     question = body.question
     locale = body.locale
+    translate_chunks = body.translate_chunks
 
     try:
         if translate_q:
@@ -255,7 +257,7 @@ async def query_files(body: QueryBody, llm=Depends(get_llm)):
         source_documents = []
         for doc in docs:
             document_page = doc.page_content.replace('\n', ' ')
-            if translate_docs:
+            if translate_docs == translate_chunks:
                 document_page = GoogleTranslator(source=translate_src, target=locale).translate(document_page)
 
             source_documents.append({
