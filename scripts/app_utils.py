@@ -22,8 +22,6 @@ from langchain.document_loaders import (
 )
 from langchain.schema import Document
 
-from scripts.app_environment import cli_column_number, cli_column_width
-
 
 def print_platform_version():
     """
@@ -125,17 +123,19 @@ def display_directories():
     base_dir = "./source_documents"
     directories = []
 
-    # Fetch directories and subdirectories
-    for dirpath, dirnames, filenames in os.walk(base_dir):
-        # Ignore base directory
-        if dirpath == base_dir:
-            for dirname in sorted(dirnames):  # Sort directories
-                directories.append(dirname)
-        else:
-            # Ignore subdirectories of subdirectories
-            if os.path.dirname(dirpath) == base_dir:
-                for dirname in sorted(dirnames):  # Sort subdirectories
-                    directories.append(f"{os.path.basename(dirpath)}/{dirname}")
+    # Fetch directories and their direct subdirectories
+    sorted_list = sorted(os.listdir(base_dir))
+    for dir_name in sorted_list:
+        if not dir_name.startswith("."):
+            dir_path = os.path.join(base_dir, dir_name)
+
+            if os.path.isdir(dir_path):
+                directories.append(dir_name)
+                subdirectories = [f"{dir_name}/{sub_dir}" for sub_dir in sorted(os.listdir(dir_path)) if os.path.isdir(os.path.join(dir_path, sub_dir))]
+                directories.extend(subdirectories)
+
+    cli_column_number = 4  # Number of columns to be displayed
+    cli_column_width = 30  # Width of the column
 
     # Calculate the number of rows needed based on the number of directories
     num_rows = math.ceil(len(directories) / cli_column_number)
@@ -149,7 +149,7 @@ def display_directories():
             if index < len(directories):
                 directory = directories[index]
                 wrapped_directory = textwrap.shorten(directory, width=cli_column_width - 1, placeholder="...")
-                print(f"{index + 1:2d}. {wrapped_directory:{cli_column_width}}", end="")
+                print(f"{index + 1:2d}. {wrapped_directory:{cli_column_width}}", end=" ")
         print()  # Print a new line after each row
 
     return directories
