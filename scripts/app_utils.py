@@ -125,21 +125,8 @@ def display_directories():
     base_dir = "./source_documents"
     directories = display_source_directories(base_dir)
 
-    # Flat list to keep track of all directories and subdirectories
-    all_dirs = []
-
-    for directory in directories:
-        # Get the subdirectories for the current directory
-        sub_directories = os.scandir(os.path.join(base_dir, directory))
-        # Only keep the subdirectories (not files)
-        sub_directories = [f"{directory}/{sd.name}" for sd in sub_directories if sd.is_dir()]
-
-        # Add directory and its subdirectories to the list
-        all_dirs.append(directory)
-        all_dirs.extend(sub_directories)
-
     # Calculate the number of rows needed based on the number of directories
-    num_rows = math.ceil(len(all_dirs) / cli_column_number)
+    num_rows = math.ceil(len(directories) / cli_column_number)
 
     # Print directories in multiple columns
     for row in range(num_rows):
@@ -147,10 +134,10 @@ def display_directories():
             # Calculate the index of the directory based on the current row and column
             index = row + column * num_rows
 
-            if index < len(all_dirs):
-                directory = all_dirs[index]
+            if index < len(directories):
+                directory = directories[index]
                 wrapped_directory = textwrap.shorten(directory, width=cli_column_width - 1, placeholder="...")
                 print(f"{index + 1:2d}. {wrapped_directory:{cli_column_width}}", end="")
         print()  # Print a new line after each row
 
-    return all_dirs
+    return directories
