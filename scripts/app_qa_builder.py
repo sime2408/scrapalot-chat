@@ -42,7 +42,7 @@ def print_document_chunk(doc):
         speak_chunk(document_page)
 
 
-def process_database_question(database_name, llm, collection_name: Optional[str]):
+async def process_database_question(database_name, llm, collection_name: Optional[str]):
     embeddings_kwargs = {'device': 'cuda'} if gpu_is_enabled else {'device': 'cpu'}
     encode_kwargs = {'normalize_embeddings': False}
     embeddings = OpenAIEmbeddings() if openai_use else HuggingFaceEmbeddings(

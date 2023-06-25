@@ -171,7 +171,8 @@ def main():
                 # If not, the database name and the collection name are the same
                 database_name, collection_name = dir_name, dir_name
 
-            qa_list.append(process_database_question(database_name=database_name, llm=llm, collection_name=collection_name))
+            processed_answer = await process_database_question(database_name=database_name, llm=llm, collection_name=collection_name)
+            qa_list.append(processed_answer)
 
         # Doesn't work very well for some reason won't send proper collection name to process_database_question?
         # def worker(j):

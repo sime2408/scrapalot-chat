@@ -1,7 +1,9 @@
+import asyncio
 import os
 import subprocess
 import sys
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import List, Optional, Union
 from urllib.parse import unquote
@@ -84,6 +86,7 @@ class LLM:
 ###############################################################################
 chat_history = []
 llm_manager = LLM()
+executor = ThreadPoolExecutor(max_workers=5)
 
 
 @app.on_event("startup")
@@ -104,7 +107,7 @@ def list_of_collections(database_name: str):
     return client.list_collections()
 
 
-def get_files_from_dir(database: str, page: int, items_per_page: int) -> List[SourceDirectoryFile]:
+async def get_files_from_dir(database: str, page: int, items_per_page: int) -> List[SourceDirectoryFile]:
     all_files = []
 
     for root, dirs, files in os.walk(database):
@@ -125,14 +128,15 @@ def run_ingest(database_name: str, collection_name: Optional[str] = None):
                         "--ingest-dbname", database_name, "--collection", collection_name], check=True)
 
 
-def docx_to_html(docx_path):
+async def docx_to_html(docx_path):
+    loop = asyncio.get_running_loop()
     with open(docx_path, "rb") as docx_file:
-        result = mammoth.convert_to_html(docx_file)
+        result = await loop.run_in_executor(executor, mammoth.convert_to_html, docx_file)
         html = result.value  # The generated HTML
     return html
 
 
-def epub_to_html(epub_path):
+async def epub_to_html(epub_path):
     book = epub.read_epub(epub_path)
     html = "<html><body>"
     for item in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
@@ -190,7 +194,7 @@ async def get_database_files(database_name: str, page: int = Query(1, ge=1), ite
     if not os.path.exists(database_dir) or not os.path.isdir(database_dir):
         raise HTTPException(status_code=404, detail="Database not found")
 
-    files = get_files_from_dir(database_dir, page, items_per_page)
+    files = await get_files_from_dir(database_dir, page, items_per_page)
     return files
 
 
@@ -201,7 +205,7 @@ async def get_database_collection_files(database_name: str, collection_name: str
     collection_dir = os.path.join(absolute_base_dir, database_name, collection_name)
     if not os.path.exists(collection_dir) or not os.path.isdir(collection_dir):
         raise HTTPException(status_code=404, detail="Collection not found")
-    files = get_files_from_dir(collection_dir, page, items_per_page)
+    files = await get_files_from_dir(collection_dir, page, items_per_page)
     return files
 
 
@@ -220,10 +224,10 @@ async def get_database_file(database_name: str, file_name: str) -> Union[HTMLRes
     file_extension = os.path.splitext(absolute_file_path)[-1].lower()
 
     if file_extension == ".docx":
-        html = docx_to_html(absolute_file_path)
+        html = await docx_to_html(absolute_file_path)
         return HTMLResponse(content=html, status_code=200)
     elif file_extension == ".epub":
-        html = epub_to_html(absolute_file_path)
+        html = await epub_to_html(absolute_file_path)
         return HTMLResponse(content=html, status_code=200)
     else:
         return FileResponse(absolute_file_path)
@@ -242,7 +246,7 @@ async def query_files(body: QueryBody, llm=Depends(get_llm)):
 
         seeking_from = database_name + '/' + collection_name if collection_name and collection_name != database_name else database_name
         print(f"\n\033[94mSeeking for answer from: [{seeking_from}]. May take some minutes...\033[0m")
-        qa = process_database_question(database_name, llm, collection_name)
+        qa = await process_database_question(database_name, llm, collection_name)
         answer, docs = process_query(qa, question, model_n_answer_words, chat_history, chromadb_get_only_relevant_docs=False, translate_answer=False)
 
         if translate_a:
