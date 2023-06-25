@@ -122,7 +122,7 @@ def display_directories():
     It also explores one level of subdirectories for each directory.
     :return: The list of existing directories.
     """
-    base_dir = "source_documents"
+    base_dir = "./source_documents"
     directories = display_source_directories(base_dir)
 
     # Flat list to keep track of all directories and subdirectories
