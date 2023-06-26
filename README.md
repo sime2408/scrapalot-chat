@@ -341,7 +341,7 @@ Example installation with cuBLAS backend:
 !CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install llama-cpp-python
 ```
 
-**IMPORTANT**: If you have already installed a cpu only version of the package, you need to reinstall it from scratch: condiser the following command:
+**IMPORTANT**: If you have already installed a cpu only version of the package, you need to reinstall it from scratch: consider the following command:
 
 ```shell
 !CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install --upgrade --force-reinstall llama-cpp-python
