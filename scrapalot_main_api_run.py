@@ -19,6 +19,7 @@ from langchain.callbacks import StreamingStdOutCallbackHandler
 from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import FileResponse, HTMLResponse
+from starlette.staticfiles import StaticFiles
 
 from scrapalot_main import get_llm_instance
 from scripts.app_environment import translate_docs, translate_src, translate_q, chromaDB_manager, translate_a, model_n_answer_words
@@ -45,6 +46,8 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
+
+app.mount("/static", StaticFiles(directory="scrapalot-chat-ui/static"), name="static")
 
 load_dotenv()
 
@@ -334,6 +337,19 @@ async def upload_files(request: Request):
             return response
     except Exception as e:
         return HTTPException(status_code=500, detail=str(e))
+
+
+###############################################################################
+# Frontend
+###############################################################################
+@app.get("/")
+def home():
+    return FileResponse('scrapalot-chat-ui/index.html')
+
+
+@app.get("/{catch_all:path}")
+def read_root(catch_all: str):
+    return FileResponse('scrapalot-chat-ui/index.html')
 
 
 # commented out, because we use web UI
