@@ -266,7 +266,7 @@ python scrapalot_main_api_run.py
 Scrapalot supports REST API to integrate UI, you can develop your own, but we support ReactJS, available when you run the API at http://localhost:8000).
 Or you can use our old API created by streamlit (which will soon be deprecated):
 API runs by default at port 8000, and it's required for streamlit UI to be started first, for ReactJS UI it's automatically started.
-API address is manipulated by changing `API_BASE_URL` env parameter.
+API address is manipulated by changing `API_BASE_URL` env parameter, and potentially `API_SCHEME`, `API_PORT`, `API_HOST`.
 
 ## User Interface
 

@@ -22,15 +22,10 @@ from starlette.responses import FileResponse, HTMLResponse
 from starlette.staticfiles import StaticFiles
 
 from scrapalot_main import get_llm_instance
-from scripts.app_environment import translate_docs, translate_src, translate_q, chromaDB_manager, translate_a, model_n_answer_words
+from scripts.app_environment import translate_docs, translate_src, translate_q, chromaDB_manager, translate_a, model_n_answer_words, api_host, api_port, api_scheme
 from scripts.app_qa_builder import process_database_question, process_query
 
 sys.path.append(str(Path(sys.argv[0]).resolve().parent.parent))
-
-scheme = "http"
-hostname = "127.0.0.1"
-port = "8000"
-server_url = f'{scheme}://{hostname}:{port}'
 
 app = FastAPI(title="scrapalot-chat API")
 
@@ -356,10 +351,9 @@ def read_root(catch_all: str):
 if __name__ == "__main__":
     import uvicorn
 
-    host = '0.0.0.0'
     path = 'api'
     # cert_path = "cert/cert.pem"
     # key_path = "cert/key.pem"
-    print(f"Scrapalot API is now available at {scheme}://{host}:{port}/{path}")
-    uvicorn.run(app, host=host, port=int(port))
+    print(f"Scrapalot API is now available at {api_scheme}://{api_host}:{api_port}/{path}")
+    uvicorn.run(app, host=api_host, port=int(api_port))
     # uvicorn.run(app, host=host, port=int(port), ssl_keyfile=key_path, ssl_certfile=cert_path)

@@ -97,7 +97,10 @@ cli_column_width = int(os.environ.get("CLI_COLUMN_WIDTH", "30"))
 cli_column_number = int(os.environ.get("CLI_COLUMN_NUMBER", "4"))
 
 # API
-api_base_url = os.environ.get("API_BASE_URL", "http://127.0.0.1:8000/api")
+api_host = os.environ.get("API_HOST", "0.0.0.0")
+api_port = int(os.environ.get("API_PORT", "8000"))
+api_scheme = os.environ.get("API_SCHEME", "http")
+api_base_url = os.environ.get("API_BASE_URL", f"{api_scheme}://{api_host}:{api_port}/api")
 
 # TTS
 tts_speed = int(os.environ.get("TTS_SPEED", "210"))
