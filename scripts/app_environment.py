@@ -101,6 +101,7 @@ api_base_url = os.environ.get("API_BASE_URL", "http://127.0.0.1:8080/api")
 
 # TTS
 tts_speed = int(os.environ.get("TTS_SPEED", "210"))
+tts_enabled = os.environ.get("TTS_ENABLED", "true") == "true"
 
 
 def parse_arguments():

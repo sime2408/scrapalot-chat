@@ -3,21 +3,22 @@ import logging as logger
 
 import pyttsx3
 
-from scripts.app_environment import os_running_environment, tts_speed, translate_docs, translate_dst
+from scripts.app_environment import os_running_environment, tts_speed, translate_docs, translate_dst, tts_enabled
 
-if os_running_environment == 'mac':
+if os_running_environment == 'mac' and tts_enabled:
     driver = "pyttsx3.drivers.nsss"
     importlib.import_module(driver)
-elif os_running_environment == 'windows':
+elif os_running_environment == 'windows' and tts_enabled:
     driver = 'pyttsx3.drivers.sapi5'
     importlib.import_module(driver)
-elif os_running_environment == 'linux':
+elif os_running_environment == 'linux' and tts_enabled:
     driver = 'pyttsx3.drivers.espeak'
     importlib.import_module(driver)
 
-engine = pyttsx3.init()
-engine.setProperty('rate', tts_speed)
-voices = engine.getProperty('voices')  # getting details of current voice
+if tts_enabled:
+    engine = pyttsx3.init()
+    engine.setProperty('rate', tts_speed)
+    voices = engine.getProperty('voices')  # getting details of current voice
 
 
 def print_all_voices_helper():
@@ -66,12 +67,13 @@ def supported_voices():
 
 
 def speak_chunk(content):
-    if not translate_docs:
-        # defaults to English
-        voice = voices[0].id
-    else:
-        voice = supported_voices()
+    if tts_enabled:
+        if not translate_docs:
+            # defaults to English
+            voice = voices[0].id
+        else:
+            voice = supported_voices()
 
-    engine.setProperty('voice', voice)
-    engine.say(content)
-    engine.runAndWait()
+        engine.setProperty('voice', voice)
+        engine.say(content)
+        engine.runAndWait()
