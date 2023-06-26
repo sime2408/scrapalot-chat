@@ -8,8 +8,8 @@ You can ingest documents and ask questions without an internet connection!
 If supports text-to-speech (over CLI), and `question`, `answer`, and `source documents`
 translations using Google Translate from 🌍 English 🏴󠁧󠁢󠁥󠁮󠁧󠁿 written documents to German 🇩🇪, Spanish 🇪🇸, French 🇫🇷, Italian 🇮🇹, Croatian 🇭🇷.
 
-![API](img/web_ui_asked_question.png)
-![API](img/web_ui_question_answered.png)
+![UI](img/UI.png)
+![Ingest](img/UI-ingest.png)
 
 ## Discord server
 
@@ -151,7 +151,7 @@ variable in the `.env` file.
 
 This will create database embeddings:
 
-![Ingest created](img/ingest_data_separated_db.png)
+![Ingest created](img/UI-ingest_db.png)
 
 # QA application
 
@@ -260,19 +260,21 @@ Scrapalot has REST API built by `fastapi` that has to be running if you want to 
 python scrapalot_main_api_run.py
 ```
 
-Scrapalot supports REST API to integrate UI, you can develop your own, but we support UI already created by streamlit:
-API runs by default at port 8080, and it's required for streamlit UI to be started first.
+Scrapalot supports REST API to integrate UI, you can develop your own, but we support ReactJS, available when you run the API at http://localhost:8080).
+Or you can use our old API created by streamlit (which will soon be deprecated):
+API runs by default at port 8080, and it's required for streamlit UI to be started first, for ReactJS UI it's automatically started.
 API address is manipulated by changing `API_BASE_URL` env parameter.
 
 ## User Interface
 
-UI is based on `streamlit` / `streamlit-chat`. To run the web:
+UI is based on `ReactJS`. To run the web you just need to run the `scrapalot_main_api_run.py`:
 
 ```shell
-streamlit run scrapalot_main_web.py
+python scrapalot_main_api_run.py
 ```
 
 UI supports specifying `database` and `collection` in the database where the questions would be asked.
+UI is constantly WIP so some functionallities might be disabled. If you find any issues let me know.
 
 # OS Setup
 
