@@ -39,7 +39,7 @@
     - CUDA GPU now works on windows, updated instructions inside README.md
     - CUDA GPU linux testing
 
-- **09.06.2023**
+- **19.06.2023**
     - adding collections to the DB means that not only you can have separate databases, but you can have sub-collections inside them. An example: a database named "medicine" can have collections: of
       allergies, immunology, anesthesiology, dermatology, and radiology .... which you can choose from the UI when asking questions. When you perform and ingest you can specify --ingest-dbname and
       --collection, if you don't specify --collection it will be named as the database name. If you don't specify any of these arguments, users will be prompted to enter the database (for now only
@@ -56,3 +56,15 @@
     - added CHANGELOG file to track the changes
     - CUDA testing on Linux
     - added support for a text-to-speech espeak library on linux
+
+- **26.06.2023**
+    - upgraded langchain, llama-cpp-python, unstructured, extract-msg, bitsandbytes, fastapi
+    - for Huggingface models, added AutoGPTQForCausalLM logic (CPU/GPU)
+    - asyncio now runs the main function of scrapalot_main.py
+    - tested app how it works on SSL
+    - API base path is now /api, and the UI is served under /, all API functions are now asynchronous to support pooling
+    - API added new functions to support new UI
+    - API added mammoth and ebooklib to read and convert docx and epub files to html in order to display them on the new UI
+    - fixed bug with CLI showing collections properly as well
+    - scrapalot-chat-web deleted from docker-compose.yml
+    - added new UI built in ReactJS, which now has a document browser, and many more features

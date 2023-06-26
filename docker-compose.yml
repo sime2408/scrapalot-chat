@@ -40,30 +40,6 @@ services:
       - ./db:/home/scrapalot/scrapalot-chat/db
       - ./source_documents:/home/scrapalot/scrapalot-chat/source_documents
 
-  scrapalot-chat-web:
-    container_name: scrapalot-chat-web
-    image: scrapalot-chat:latest
-    command: [ "streamlit", "run", "scrapalot_main_web.py",
-               "--server.port=8501", "--theme.primaryColor #1e81b0" "--theme.secondaryBackgroundColor #84c0d6" ]
-    ports:
-      - "8501:8501"
-    environment:
-      - API_BASE_URL=http://scrapalot-chat-api:8080/api
-      # - API_BASE_URL=http://scrapalot-chat-api:8080/api
-      - OS_RUNNING_ENVIRONMENT=linux
-      - INGEST_PERSIST_DIRECTORY=db
-      - INGEST_EMBEDDINGS_MODEL=all-MiniLM-L6-v2
-      - MODEL_TYPE=llamacpp
-      - MODEL_ID_OR_PATH=/home/scrapalot/scrapalot-chat/models/WizardLM-7B-uncensored.ggmlv3.q8_0.bin
-      - MODEL_N_CTX=1000
-    depends_on:
-      #- scrapalot-chat-api
-      - scrapalot-chat-api
-    volumes:
-      - ./models:/home/scrapalot/scrapalot-chat/models
-      - ./db:/home/scrapalot/scrapalot-chat/db
-      - ./source_documents:/home/scrapalot/scrapalot-chat/source_documents
-
   #
   # To run with CUDA 11.8
   #  docker compose run --rm --build scrapalot-chat-api-cuda-11.8
