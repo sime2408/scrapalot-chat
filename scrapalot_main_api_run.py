@@ -149,6 +149,19 @@ async def epub_to_html(epub_path):
     return html
 
 
+async def get_database_file_response(absolute_file_path: str) -> Union[HTMLResponse, FileResponse]:
+    file_extension = os.path.splitext(absolute_file_path)[-1].lower()
+
+    if file_extension == ".docx":
+        html = await docx_to_html(absolute_file_path)
+        return HTMLResponse(content=html, status_code=200)
+    elif file_extension == ".epub":
+        html = await epub_to_html(absolute_file_path)
+        return HTMLResponse(content=html, status_code=200)
+    else:
+        return FileResponse(absolute_file_path)
+
+
 ###############################################################################
 # API
 ###############################################################################
@@ -210,6 +223,23 @@ async def get_database_collection_files(database_name: str, collection_name: str
     return files
 
 
+@app.get("/api/database/{database_name}/file-first", response_model=None)
+async def get_database_file_first(database_name: str) -> Union[HTMLResponse, FileResponse]:
+    base_dir = "./source_documents"
+    absolute_base_dir = os.path.abspath(base_dir)
+    database_dir = os.path.join(absolute_base_dir, database_name)
+    if not os.path.exists(database_dir) or not os.path.isdir(database_dir):
+        raise HTTPException(status_code=404, detail="Database not found")
+
+    # Find the absolute_file_path of a first document in the list of database
+    files = os.listdir(database_dir)
+    if not files:
+        raise HTTPException(status_code=404, detail="No documents in database")
+
+    absolute_file_path = os.path.join(database_dir, files[0])
+    return await get_database_file_response(absolute_file_path)
+
+
 @app.get("/api/database/{database_name}/file/{file_name}", response_model=None)
 async def get_database_file(database_name: str, file_name: str) -> Union[HTMLResponse, FileResponse]:
     base_dir = "./source_documents"
@@ -222,16 +252,7 @@ async def get_database_file(database_name: str, file_name: str) -> Union[HTMLRes
     if not os.path.exists(absolute_file_path):
         raise HTTPException(status_code=404, detail="File not found")
 
-    file_extension = os.path.splitext(absolute_file_path)[-1].lower()
-
-    if file_extension == ".docx":
-        html = await docx_to_html(absolute_file_path)
-        return HTMLResponse(content=html, status_code=200)
-    elif file_extension == ".epub":
-        html = await epub_to_html(absolute_file_path)
-        return HTMLResponse(content=html, status_code=200)
-    else:
-        return FileResponse(absolute_file_path)
+    return await get_database_file_response(absolute_file_path)
 
 
 @app.post('/api/query')
