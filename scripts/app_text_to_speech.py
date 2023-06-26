@@ -22,10 +22,11 @@ if tts_enabled:
 
 
 def print_all_voices_helper():
-    logger.log(logger.DEBUG, "On this system following voices are supported:")
-    for index, voice in enumerate(voices):
-        logger.log(logger.DEBUG, f"Voice {index}: ID: {voice.id}, Name: {voice.name}, Languages: {voice.languages}, Gender: {voice.gender}, Age: {voice.age}")
-        engine.setProperty('voice', voice.id)
+    if tts_enabled:
+        logger.log(logger.DEBUG, "On this system following voices are supported:")
+        for index, voice in enumerate(voices):
+            logger.log(logger.DEBUG, f"Voice {index}: ID: {voice.id}, Name: {voice.name}, Languages: {voice.languages}, Gender: {voice.gender}, Age: {voice.age}")
+            engine.setProperty('voice', voice.id)
 
 
 print_all_voices_helper()
