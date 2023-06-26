@@ -25,4 +25,4 @@ COPY ["requirements.txt", "scrapalot_ingest.py", "scrapalot_main.py", "scrapalot
 RUN pip3 install -r requirements.txt
 
 # Expose port
-EXPOSE 8080 8501
+EXPOSE 8000 8501

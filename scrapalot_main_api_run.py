@@ -29,13 +29,13 @@ sys.path.append(str(Path(sys.argv[0]).resolve().parent.parent))
 
 scheme = "http"
 hostname = "127.0.0.1"
-port = "8080"
+port = "8000"
 server_url = f'{scheme}://{hostname}:{port}'
 
 app = FastAPI(title="scrapalot-chat API")
 
 origins = [
-    "http://localhost:3000", "http://localhost:8080", "https://scrapalot.com"
+    "http://localhost:3000", "http://localhost:8000", "https://scrapalot.com"
 ]
 
 # Add CORS middleware

@@ -27,7 +27,7 @@ services:
           memory: 16g
     # command: ["tail", "-f", "/dev/null"]
     ports:
-      - "8080:8080"
+      - "8000:8000"
     environment:
       - OS_RUNNING_ENVIRONMENT=linux
       - INGEST_PERSIST_DIRECTORY=db
@@ -62,7 +62,7 @@ services:
           memory: 16G
     # command: ["tail", "-f", "/dev/null"]
     ports:
-      - "8080:8080"
+      - "8000:8000"
     environment:
       - OS_RUNNING_ENVIRONMENT=linux
       - INGEST_PERSIST_DIRECTORY=db
