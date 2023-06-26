@@ -33,16 +33,18 @@ server_url = f'{scheme}://{hostname}:{port}'
 
 app = FastAPI(title="scrapalot-chat API")
 
+origins = [
+    "http://localhost:3000", "http://localhost:8080", "https://scrapalot.com"
+]
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
+    allow_origins=origins,  # Allows all origins
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
-
-allow_origins = ["http://localhost:3000", "https://scrapalot.com"]
 
 load_dotenv()
 
