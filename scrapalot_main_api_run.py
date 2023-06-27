@@ -142,8 +142,8 @@ async def epub_to_html(epub_path):
     html = "<html><body>"
     for item in book.get_items_of_type(ebooklib.ITEM_DOCUMENT):
         soup = BeautifulSoup(item.get_content().decode("utf-8"), 'html.parser')
-        for img in soup.find_all('img'):
-            img.decompose()
+        for tag in soup.find_all(['img', 'image', 'svg']):
+            tag.decompose()
         html += str(soup)
     html += "</body></html>"
     return html
