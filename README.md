@@ -13,7 +13,7 @@ translations using Google Translate from 🌍 English 🏴󠁧󠁢󠁥󠁮󠁧�
 
 ## Discord server
 
-[scrapalot-chat](https://discord.gg/983PUp6K)
+[scrapalot-chat](https://discord.gg/wxEBCMd3TT)
 
 ## How is it working?
 
