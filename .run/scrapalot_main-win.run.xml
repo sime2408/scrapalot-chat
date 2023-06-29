@@ -6,7 +6,7 @@
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
     </envs>
-    <option name="SDK_HOME" value="/usr/local/anaconda3/envs/scrapalot-chat/bin/python" />
+    <option name="SDK_HOME" value="C:\python\anaconda3\envs\scrapalot-chat\python.exe" />
     <option name="SDK_NAME" value="Python 3.10 (scrapalot-chat)" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     <option name="IS_MODULE_SDK" value="false" />
