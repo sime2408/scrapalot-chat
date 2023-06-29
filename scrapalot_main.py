@@ -156,10 +156,14 @@ async def main():
     chat_history = []
 
     while True:
-        query = input("\nEnter question (q for quit): ")
-        if query.strip() == "":
-            continue
-        if query == "q":
+        try:
+            query = input("\nEnter question (q for quit): ")
+            if query.strip() == "":
+                continue
+            if query == "q":
+                break
+        except KeyboardInterrupt:
+            print("\nProgram Terminated. Exiting...")
             break
 
         qa_list = []

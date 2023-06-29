@@ -5,7 +5,6 @@ import textwrap
 from deep_translator import GoogleTranslator
 
 from scripts.app_environment import translate_src, translate_dst, translate_docs, ingest_chunk_size
-from scripts.app_text_to_speech import speak_chunk
 from scripts.app_utils import load_single_document
 
 
@@ -135,10 +134,6 @@ def run_program():
                         user_input = input()
 
                         if user_input.lower() == 'n':
-                            start_index = end_index
-                            continue
-                        elif user_input.lower() == 's':
-                            speak_chunk(justified_content)
                             start_index = end_index
                             continue
                         elif user_input.lower() == 'b':

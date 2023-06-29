@@ -57,9 +57,6 @@ TRANSLATE_ANSWER: Whether or not turn on translation of answers from english to 
 TRANSLATE_SRC_LANG: If you want to translate answers from this language
 TRANSLATE_DST_LANG: If you want to translate answers to this language
 
-TTS_ENABLED: Whether CLI text-to-speech is enabled or not
-TTS_SPEED: Speed of TTS voice
-
 CLI_COLUMN_WIDTH: How wide will be each column when printing subdirectories of database or source documenets
 CLI_COLUMN_NUMBER: How many columns by default will be shown in CLI
 
@@ -323,12 +320,6 @@ by setting these flags: `export LLAMA_CUBLAS=1`
 
 ```shell
 pip3 install -r requirements.txt
-```
-
-If you want TEXT-TO-SPEECH support, you must install:
-
-```shell
-sudo apt install espeak
 ```
 
 ### Installation with OpenBLAS / cuBLAS / CLBlast

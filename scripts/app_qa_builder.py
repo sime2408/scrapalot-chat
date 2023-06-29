@@ -11,7 +11,6 @@ from langchain.embeddings import OpenAIEmbeddings, HuggingFaceEmbeddings
 from langchain.vectorstores import Chroma
 from openai.error import AuthenticationError
 
-from scrapalot_browse import speak_chunk
 from .app_environment import translate_dst, translate_src, translate_docs, translate_q, ingest_target_source_chunks, args, openai_use, ingest_embeddings_model, gpu_is_enabled, \
     chromaDB_manager
 
@@ -34,12 +33,10 @@ def print_document_chunk(doc):
         document_page = GoogleTranslator(source=translate_src, target=translate_dst).translate(document_page)
     wrapper = textwrap.TextWrapper(initial_indent='\033[37m', subsequent_indent='\033[37m', width=120)
     print(f"{wrapper.fill(document_page)}\033[0m\n")
-    print(f'\033[94m"n" -> next, "s" -> speak, "q" -> quit: \033[0m')
+    print(f'\033[94m"n" -> next, "q" -> quit: \033[0m')
     user_input = input()
     if user_input.lower() == 'q':
         exit(0)
-    elif user_input.lower() == 's':
-        speak_chunk(document_page)
 
 
 async def process_database_question(database_name, llm, collection_name: Optional[str]):

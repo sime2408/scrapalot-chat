@@ -33,15 +33,44 @@ def is_cuda_available() -> bool:
     return torch.cuda.is_available()
 
 
+# currently supported devices: "cpu" and "cuda"
+os_device_types = [
+    "cpu", "cuda", "mps"
+]
+
+
+def detect_device():
+    """
+    Detects the type of device available.
+    Returns:
+        device: the available device. If multiple devices are available, priority is given in the order of the os_device_types list.
+    """
+
+    for device_type in os_device_types:
+        if device_type == "cuda" and torch.cuda.is_available():
+            print("CUDA GPU is available")
+            device = torch.device("cuda")
+            break
+        elif device_type == "mps" and torch.cuda.is_available():  # 'mps' device type detection is treated as 'cuda' here for compatibility.
+            print("Apple M1/M2 chip is available")
+            device = torch.device("cuda")
+            break
+        elif device_type == "cpu":
+            print("CPU is available")
+            device = torch.device("cpu")
+            break
+    else:
+        raise SystemError("None of the specified devices are available.")
+
+    return device
+
+
+# running_on_device = detect_device()
+
 # Load environment variables
 load_dotenv()
 
 os_running_environment = os.environ.get('OS_RUNNING_ENVIRONMENT', "windows")
-# currently only supporting "cpu" and "cuda"
-os_device_types = [
-    "cpu", "cuda", "ipu", "xpu", "mkldnn", "opengl", "opencl", "ideep", "hip",
-    "ve", "fpga", "ort", "xla", "lazy", "vulkan", "mps", "meta", "hpu", "mtia",
-]
 
 # Define the folder for storing database
 ingest_persist_directory = os.environ.get('INGEST_PERSIST_DIRECTORY', 'db')
@@ -101,10 +130,6 @@ api_host = os.environ.get("API_HOST", "0.0.0.0")
 api_port = int(os.environ.get("API_PORT", "8000"))
 api_scheme = os.environ.get("API_SCHEME", "http")
 api_base_url = os.environ.get("API_BASE_URL", f"{api_scheme}://{api_host}:{api_port}/api")
-
-# TTS
-tts_speed = int(os.environ.get("TTS_SPEED", "210"))
-tts_enabled = os.environ.get("TTS_ENABLED", "true") == "true"
 
 
 def parse_arguments():
