@@ -127,7 +127,7 @@ def run_program():
                         wrapper = textwrap.TextWrapper(initial_indent='\033[37m', subsequent_indent='\033[37m',
                                                        width=120)
                         print(f"{wrapper.fill(justified_content)}\033[0m\n")
-                        print(f'\n\033[94mPress "n" -> next, "b" -> back, "s" -> speak, or any other key to go back '
+                        print(f'\n\033[94mPress "n" -> next, "b" -> back, or any other key to go back '
                               f'to the main directory: \033[0m')
 
                         # Use the input function to wait for user input
