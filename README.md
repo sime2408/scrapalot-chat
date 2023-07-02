@@ -13,9 +13,17 @@ translations using Google Translate from 🌍 English 🏴󠁧󠁢󠁥󠁮󠁧�
 
 ## Discord server
 
+## :loudspeaker: Important Note :loudspeaker:
+
+Dear Users,
+I've frozen this repository development and started working with a few colleagues on a much more advanced idea. 
+In order to get more people working with us I've opened a discord channel to work on a private repo/fork of this instance. 
+
+#### :bell: Join us on the Discord server. Prerequisites are min 3 years of experience either in Python, ReactJS, DataScience, or DevOps!
+
 [scrapalot-chat](https://discord.gg/mmuCqzFXs7)
 
-## How is it working?
+## How is this app working?
 
 ### Ingestion of documents to the database
 
