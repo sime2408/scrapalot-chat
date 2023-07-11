@@ -105,15 +105,6 @@ def load_single_document(file_path: str) -> List[Document]:
 # DISPLAY
 ######################################################################
 
-def display_source_directories(folder: str) -> list[str]:
-    """
-    Displays the list of existing directories in the folder directory.
-    :return: The list of existing directories.
-    """
-    print(f"Existing directories in ./{folder}:\n\033[0m")
-    return sorted((f for f in os.listdir(f"./{folder}") if not f.startswith(".")), key=str.lower)
-
-
 def display_directories():
     """
     This function displays the list of existing directories in the parent directory.

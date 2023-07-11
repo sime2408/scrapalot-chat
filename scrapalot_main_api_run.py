@@ -21,9 +21,8 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import FileResponse, HTMLResponse
 from starlette.staticfiles import StaticFiles
 
-from scrapalot_main import get_llm_instance
 from scripts.app_environment import translate_docs, translate_src, translate_q, chromaDB_manager, translate_a, model_n_answer_words, api_host, api_port, api_scheme
-from scripts.app_qa_builder import process_database_question, process_query
+from scripts.app_qa_builder import get_llm_instance,process_database_question, process_query
 
 sys.path.append(str(Path(sys.argv[0]).resolve().parent.parent))
 
