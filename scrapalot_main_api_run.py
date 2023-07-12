@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import List, Optional, Union
 from urllib.parse import unquote
+from dotenv import load_dotenv
 
 import ebooklib
 import mammoth
