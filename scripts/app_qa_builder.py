@@ -3,6 +3,8 @@ import textwrap
 from typing import Optional
 from urllib.request import pathname2url
 import logging
+from dotenv import load_dotenv
+import torch
 
 from deep_translator import GoogleTranslator
 from langchain import PromptTemplate
@@ -33,6 +35,11 @@ try:
 except Exception as e:
     logging.error("Error loading .env file, create one from example.env:", str(e))
 
+def get_gpu_memory() -> int:
+    """
+    Returns the amount of free memory in MB for each GPU.
+    """
+    return int(torch.cuda.mem_get_info()[0] / (1024 ** 2))
 
 # noinspection PyPep8Naming
 def calculate_layer_count() -> None | int | float:
